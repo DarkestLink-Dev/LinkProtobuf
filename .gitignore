@@ -7,3 +7,6 @@ User.proto
 /Source/LinkProtobufRuntime/ThirdParty/Android/x86_64/Release/libprotobuf.a
 /Source/LinkProtobufRuntime/ThirdParty/Android/armeabi-v7a/Release/libprotobuf.a
 
+Source/LinkProtobufRuntime/ThirdParty/WinArm64/Release/libprotobuf.lib
+Source/LinkProtobufRuntime/ThirdParty/Android/arm64-v8a/Release/NDK26/libprotobuf.a
+Source/LinkProtobufRuntime/ThirdParty/Android/arm64-v8a/Release/libprotobuf.a
