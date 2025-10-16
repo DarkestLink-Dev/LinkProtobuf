@@ -25,14 +25,17 @@ public class LinkProtobufRuntime : ModuleRules
 				"SlateCore",
 			}
 		);
-		
 #if UE_5_6_OR_LATER
-            CppCompileWarningSettings.ShadowVariableWarningLevel = WarningLevel.Off;
-            CppCompileWarningSettings.UndefinedIdentifierWarningLevel = WarningLevel.Off;
-        PublicDefinitions.Add("_CRT_SECURE_NO_WARNINGS");
-#else
+		CppCompileWarningSettings.ShadowVariableWarningLevel = WarningLevel.Off;
+#elif UE_4_24_OR_LATER
 		ShadowVariableWarningLevel = WarningLevel.Off;
-		UndefinedIdentifierWarningLevel = WarningLevel.Off;
+#else
+		bEnableShadowVariableWarnings = false;
+#endif
+#if UE_5_5_OR_LATER
+		CppCompileWarningSettings.UndefinedIdentifierWarningLevel = WarningLevel.Off;
+#else
+		bEnableUndefinedIdentifierWarnings = false;
 #endif
 		PublicDefinitions.Add("_CRT_SECURE_NO_WARNINGS");
 		string ProtoSourceDir = Path.Combine(ModuleDirectory, "ProtoSource");
