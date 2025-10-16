@@ -21,7 +21,7 @@ A Unreal Engine plugin that makes using Google Protocol Buffers (protobuf) in Un
 | Platform | Architecture        | EditorDevelop | Packaged |
 |:--------:|:--------------------|:------:|:--------:|
 | Windows  | x86_64 (x64)        |   ✓    |    ✓     |
-| Windows  | ARM64               |   –    | Planned  |
+| Windows  | ARM64               |   –    | ✓ |
 | Linux    | x86_64              | Planned |    ✓     |
 | Linux    | ARM64 (aarch64)     |   –    | ✓ |
 | macOS    | x86_64 (Intel)      |   –    | – |
@@ -84,15 +84,17 @@ Not supported:
 - If your project is Blueprint-only, convert it to a C++ project via:
   - In the editor, go to **File -> New C++ Class**, create an (empty) class, and let Unreal regenerate project files.
   - Reopen the project in your IDE and build once so the C++ toolchain is set up.
+- Plugin need to be installed in your project `Plugins` folder.
+**⚠️ IMPORTANT: If you install from FAB Marketplace, you MUST manually copy the plugin to your project's Plugins folder for it to work properly.**
 
 ## Usage
 
 To use the LinkProtobuf plugin in your Unreal Engine project, follow these steps:
 
-1. Install the plugin by copying it into your project's `Plugins` folder.
+1. Install the plugin by copying it into your project's `Plugins` folder. 
 2. Enable the plugin in the Unreal Engine editor by going to `Edit` -> `Plugins`, finding LinkProtobuf , and checking the "Enabled" box.
-3. Restart the Unreal Engine editor to load the plugin.
-4. Create your own `UStruct` definitions for the messages you need to pass. 
+3. Close the Unreal editor to Right-Click .uproject and select "Generate Visual Studio project files".
+4. Start the Unreal Editor and create your own `UStruct` definitions for the messages you need to pass.
 5. Go to `Edit` -> `ProjectSettings` -> `Plugins` -> `LinkProtobuf ` -> `User Defined Structs for Protobuf` Add Structs you created.
 7. > Click The `Generate ProtoFiles From Settings` Then you will see **ProtoCpp Generate Success. Please recompile your project from IDE or use Live Coding in Editor(Sometimes not work).** in the OpenDialog, otherwise, check the Output Log for errors.
 8. Rebuild your project to include the generated protobuf C++ files.
