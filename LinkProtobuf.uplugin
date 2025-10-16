@@ -1,0 +1,37 @@
+{
+	"FileVersion": 3,
+	"Version": 1,
+	"VersionName": "1.0",
+	"FriendlyName": "LinkProtobuf",
+	"Description": "Plugin for Unreal Engine to use Google Protobuf in both Blueprints and C++.",
+	"Category": "Binary Protocol",
+	"CreatedBy": "DarkestLink-Dev",
+	"CreatedByURL": "https://github.com/DarkestLink-Dev/LinkProtobuf",
+	"DocsURL": "https://github.com/DarkestLink-Dev/LinkProtobuf",
+	"MarketplaceURL": "com.epicgames.launcher://ue/Fab/product/c740c73a-736c-4fb6-9706-1e100195a180",
+	"SupportURL": "https://github.com/DarkestLink-Dev/LinkProtobuf/issues",
+	"EngineVersion": "5.6.0",
+	"CanContainContent": false,
+	"IsBetaVersion": false,
+	"IsExperimentalVersion": false,
+	"Installed": false,
+	"Modules": [
+		{
+			"Name": "LinkProtobufEditor",
+			"Type": "Editor",
+			"LoadingPhase": "Default",
+			"PlatformAllowList": [
+				"Win64"
+			]
+		},
+		{
+			"Name": "LinkProtobufRuntime",
+			"Type": "Runtime",
+			"LoadingPhase": "PreDefault",
+			"PlatformAllowList": [
+				"Win64",
+				"Linux"
+			]
+		}
+	]
+}
