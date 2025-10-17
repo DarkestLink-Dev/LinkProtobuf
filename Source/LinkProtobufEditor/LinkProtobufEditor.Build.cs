@@ -1,4 +1,4 @@
-// Copyright 2025 DarkestLink-Dev
+// Copyright DarkestLink-Dev 2025 All Rights Reserved. All Rights Reserved.
 
 using System.IO;
 using UnrealBuildTool;
@@ -8,19 +8,7 @@ public class LinkProtobufEditor : ModuleRules
 	public LinkProtobufEditor(ReadOnlyTargetRules Target) : base(Target)
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
-		PublicIncludePaths.AddRange(
-			new string[]
-			{
-                // Make protobuf headers visible to the editor module that compiles .pb.cc if any
-                Path.Combine(ModuleDirectory, "../LinkProtobufRuntime/include"),
-			}
-		);
 
-		PrivateIncludePaths.AddRange(
-			new string[] {
-				// Add other private include paths required here
-			}
-		);
 		PublicDependencyModuleNames.AddRange(
 			new string[]
 			{
@@ -41,13 +29,6 @@ public class LinkProtobufEditor : ModuleRules
 				"Slate",
 				"SlateCore",
 				"UnrealEd",
-			}
-		);
-
-		DynamicallyLoadedModuleNames.AddRange(
-			new string[]
-			{
-
 			}
 		);
 

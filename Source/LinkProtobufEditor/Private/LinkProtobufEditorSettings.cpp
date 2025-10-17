@@ -1,4 +1,4 @@
-﻿// Copyright 2025 DarkestLink-Dev
+﻿// Copyright DarkestLink-Dev 2025 All Rights Reserved.
 
 #include "LinkProtobufEditorSettings.h"
 
@@ -16,7 +16,12 @@ FString ULinkProtobufEditorSettings::GetDefaultProtobufGenPath() const
 	if (TSharedPtr<IPlugin> Plugin = IPluginManager::Get().FindPlugin(TEXT("LinkProtobuf")))
 	{
 		FString PluginDir = Plugin->GetBaseDir();
-		return FPaths::Combine(PluginDir, TEXT("Source"), TEXT("LinkProtobufRuntime"), TEXT("ProtoSource"));
+		FString ProjectFilePath = FPaths::GetProjectFilePath();
+		if (!ProjectFilePath.IsEmpty())
+		{
+			FString ProjectName = FPaths::GetBaseFilename(ProjectFilePath);
+			return FPaths::Combine(PluginDir, TEXT("Source"), TEXT("ProtoSource"), ProjectName);
+		}
 	}
 	return FString();
 }
@@ -26,19 +31,19 @@ FString ULinkProtobufEditorSettings::GetDefaultProtocExecPath() const
 	if (TSharedPtr<IPlugin> Plugin = IPluginManager::Get().FindPlugin(TEXT("LinkProtobuf")))
 	{
 		FString PluginDir = Plugin->GetBaseDir();
-		FString ProtocBaseDir = FPaths::Combine(PluginDir, TEXT("Source"), TEXT("LinkProtobufEditor"), TEXT("ThirdParty"));
+		FString ProtoThirdPartyDir = FPaths::Combine(PluginDir, TEXT("Source"), TEXT("ThirdParty"));
 		// Set the ProtocExecutePath based on the platform
 		if (PLATFORM_WINDOWS)
 		{
-			return FPaths::Combine(ProtocBaseDir, TEXT("Win64/protoc"));
+			return FPaths::Combine(ProtoThirdPartyDir, TEXT("Win64/protoc"));
 		}
 		else if (PLATFORM_LINUX)
 		{
-			return FPaths::Combine(ProtocBaseDir, TEXT("Linux"));
+			return FPaths::Combine(ProtoThirdPartyDir, TEXT("Linux/protoc"));
 		}
 		else if (PLATFORM_MAC)
 		{
-			return FPaths::Combine(ProtocBaseDir, TEXT("Mac"));
+			return FPaths::Combine(ProtoThirdPartyDir, TEXT("Mac/protoc"));
 		}
 		else
 		{

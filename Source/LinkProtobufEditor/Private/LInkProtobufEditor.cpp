@@ -1,4 +1,4 @@
-﻿// Copyright 2025 DarkestLink-Dev
+﻿// Copyright DarkestLink-Dev 2025 All Rights Reserved.
 
 #include "LinkProtobufEditor.h"
 #include "AssetToolsModule.h"

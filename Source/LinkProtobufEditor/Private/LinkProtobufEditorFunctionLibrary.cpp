@@ -1,4 +1,4 @@
-// Copyright 2025 DarkestLink-Dev
+// Copyright DarkestLink-Dev 2025 All Rights Reserved.
 
 #include "LinkProtobufEditorFunctionLibrary.h"
 #include "LinkProtobufEditor.h"
@@ -361,6 +361,7 @@ void ULinkProtobufEditorFunctionLibrary::GenerateProtoCppFile()
 			Info.ExpireDuration = 10.0f;
 			Info.bFireAndForget = true;
 			FSlateNotificationManager::Get().AddNotification(Info);
+        	RebuildThisPlugin();
 #endif
         	return;
         });
@@ -447,5 +448,68 @@ bool ULinkProtobufEditorFunctionLibrary::CheckCppProject()
 	return false;
 }
 
+bool ULinkProtobufEditorFunctionLibrary::RebuildThisPlugin()
+{
+	FString EngineRoot = FPaths::EngineDir();
+	FString ProjectFile = FPaths::ConvertRelativePathToFull(FPaths::GetProjectFilePath());
+	FString PluginName = TEXT("LinkProtobuf");
+
+#if PLATFORM_WINDOWS
+	FString UBTPath = FPaths::Combine(EngineRoot, TEXT("Binaries/DotNET/UnrealBuildTool/UnrealBuildTool.exe"));
+#else
+	FString UBTPath = FPaths::Combine(EngineRoot, TEXT("Binaries/DotNET/UnrealBuildTool/UnrealBuildTool"));
+#endif
+
+	// 命令参数
+	FString Args = FString::Printf(
+		TEXT("\"%s\" Development Editor -Project=\"%s\" -Module=%s -TargetType=Editor -Progress -NoHotReloadFromIDE"),
+		&*FApp::GetProjectName(),
+		*ProjectFile,
+		*PluginName
+	);
+
+	UE_LOG(LogTemp, Log, TEXT("Rebuilding plugin via UBT: %s %s"), *UBTPath, *Args);
+
+	int32 ReturnCode = -1;
+	void* PipeRead = nullptr;
+	void* PipeWrite = nullptr;
+	FPlatformProcess::CreatePipe(PipeRead, PipeWrite);
+
+	FProcHandle ProcHandle = FPlatformProcess::CreateProc(
+		*UBTPath,
+		*Args,
+		true, false, false,
+		nullptr, 0,
+		nullptr, PipeWrite
+	);
+
+	if (!ProcHandle.IsValid())
+	{
+		UE_LOG(LogTemp, Error, TEXT("Failed to launch UnrealBuildTool!"));
+		FPlatformProcess::ClosePipe(PipeRead, PipeWrite);
+		return false;
+	}
+
+	// 等待编译完成
+	FString Output;
+	while (FPlatformProcess::IsProcRunning(ProcHandle))
+	{
+		FString NewOutput = FPlatformProcess::ReadPipe(PipeRead);
+		if (!NewOutput.IsEmpty())
+		{
+			Output += NewOutput;
+		}
+		FPlatformProcess::Sleep(0.1f);
+	}
+
+	FPlatformProcess::GetProcReturnCode(ProcHandle, &ReturnCode);
+	FPlatformProcess::CloseProc(ProcHandle);
+	FPlatformProcess::ClosePipe(PipeRead, PipeWrite);
+
+	UE_LOG(LogTemp, Log, TEXT("UBT Finished with code %d"), ReturnCode);
+	UE_LOG(LogTemp, Log, TEXT("%s"), *Output);
+
+	return ReturnCode == 0;
+}
 
 #undef LOCTEXT_NAMESPACE

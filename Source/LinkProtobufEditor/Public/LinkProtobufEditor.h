@@ -1,4 +1,4 @@
-﻿// Copyright 2025 DarkestLink-Dev
+﻿// Copyright DarkestLink-Dev 2025 All Rights Reserved.
 
 #pragma once
 #include "CoreMinimal.h"
