@@ -9,7 +9,8 @@ public class LinkProtobufRuntime : ModuleRules
 	public LinkProtobufRuntime(ReadOnlyTargetRules Target) : base(Target)
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
-
+		bUseRTTI = true;
+		PublicDefinitions.Add("_CRT_SECURE_NO_WARNINGS");
 		PublicDependencyModuleNames.AddRange(
 			new string[]
 			{
@@ -37,7 +38,7 @@ public class LinkProtobufRuntime : ModuleRules
 #else
 		bEnableUndefinedIdentifierWarnings = false;
 #endif
-        PublicDefinitions.Add("_CRT_SECURE_NO_WARNINGS");
+
         string ThirdPartyDir = Path.Combine(PluginDirectory, "Source","ThirdParty");
 
         if (Target.ProjectFile != null)
@@ -56,13 +57,24 @@ public class LinkProtobufRuntime : ModuleRules
 
         if (Target.Platform == UnrealTargetPlatform.Win64)
         {
-            if (RuntimeInformation.ProcessArchitecture == Architecture.X64)
-            {
-                string Win64Protolib = Path.Combine(ThirdPartyDir, "Win64/Release");
-                PublicAdditionalLibraries.AddRange(new string[]
-                {
-                    Path.Combine(Win64Protolib, "libprotobuf.lib"),
-                });
+	        if (RuntimeInformation.ProcessArchitecture == Architecture.X64)
+	        {
+	       		if (Target.bBuildEditor)
+	       		{
+			        //Use DLLs in Editor
+		   		    PublicDefinitions.Add("PROTOBUF_USE_DLLS=1");
+			        string Win64ProtoDLL = Path.Combine(ThirdPartyDir, "Win64/bin/libprotobuf.dll");
+			        PublicDelayLoadDLLs.Add(Win64ProtoDLL);
+			        RuntimeDependencies.Add(Win64ProtoDLL);
+	       		}
+	       		if (Target.Configuration == UnrealTargetConfiguration.Shipping)
+	       		{
+			        string Win64Protolib = Path.Combine(ThirdPartyDir, "Win64/Release");
+			        PublicAdditionalLibraries.AddRange(new string[]
+			        {
+				        Path.Combine(Win64Protolib, "libprotobuf.lib"),
+			        });
+	       		}
             }
 
             if (RuntimeInformation.ProcessArchitecture == Architecture.Arm64)
