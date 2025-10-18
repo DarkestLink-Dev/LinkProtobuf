@@ -1,7 +1,6 @@
 ﻿// Copyright DarkestLink-Dev 2025 All Rights Reserved.
 
 #include "LinkProtobufEditorSettings.h"
-
 #include "LinkProtobufEditor.h"
 #include "Interfaces/IPluginManager.h"
 
@@ -16,12 +15,7 @@ FString ULinkProtobufEditorSettings::GetDefaultProtobufGenPath() const
 	if (TSharedPtr<IPlugin> Plugin = IPluginManager::Get().FindPlugin(TEXT("LinkProtobuf")))
 	{
 		FString PluginDir = Plugin->GetBaseDir();
-		FString ProjectFilePath = FPaths::GetProjectFilePath();
-		if (!ProjectFilePath.IsEmpty())
-		{
-			FString ProjectName = FPaths::GetBaseFilename(ProjectFilePath);
-			return FPaths::Combine(PluginDir, TEXT("Source"), TEXT("ProtoSource"), ProjectName);
-		}
+		return FPaths::Combine(PluginDir, TEXT("Source"), TEXT("LinkProtobufRuntime"),TEXT("Public"),TEXT("ProtoSource"));
 	}
 	return FString();
 }

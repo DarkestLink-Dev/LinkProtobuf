@@ -492,7 +492,6 @@ bool ULinkProtobufFunctionLibrary::SerializeMessageToBinaryBytes(
 	OutBytes.SetNumUninitialized(BinaryData.size());
 	FMemory::Memcpy(OutBytes.GetData(), BinaryData.data(), BinaryData.size());
 
-	UE_LOG(LogProto, Log, TEXT("Serialized message (%s) to %d bytes"), *StructName, static_cast<int32>(BinaryData.size()));
 	return true;
 }
 

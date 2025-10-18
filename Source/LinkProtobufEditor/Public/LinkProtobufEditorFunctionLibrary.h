@@ -56,7 +56,7 @@ FORCEINLINE uint32 GetTypeHash(const FProtoFieldKey& Key)
 	return HashCombine(HashCombine(GetTypeHash(Key.FieldName), GetTypeHash(Key.UIDName)), GetTypeHash(Key.bRepeated));
 }
 
-UCLASS(Blueprintable)
+UCLASS()
 class LINKPROTOBUFEDITOR_API ULinkProtobufEditorFunctionLibrary : public UBlueprintFunctionLibrary
 {
 	GENERATED_BODY()

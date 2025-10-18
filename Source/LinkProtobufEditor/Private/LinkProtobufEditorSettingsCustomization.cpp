@@ -125,13 +125,22 @@ FReply FLinkProtobufEditorSettingsCustomization::OnResetProtocExecPathClicked()
 
 FReply FLinkProtobufEditorSettingsCustomization::OnButtonGenerateProtoFromSettings()
 {
+	const ULinkProtobufEditorSettings* Settings = ULinkProtobufEditorSettings::Get();
 	//Make sure it's a C++ Project
 	if (!ULinkProtobufEditorFunctionLibrary::CheckCppProject())
 	{
 		return FReply::Handled();
 	}
+	//Make sure Plugin is in Project path.
+	FString EnginePath=FPaths::EngineDir();
+	if (Settings->GetDefaultProtobufGenPath().Contains(EnginePath))
+	{
+		const FText Title = LOCTEXT("Generate Path Error", "Generate Path Error");
+		const FText Msg = LOCTEXT("Plugin Must Be In Project.Please Copy it to your Project Plugins Folder", "The Protobuf Generate Files must be in your project directory that can be Complied. Please copy the plugin to your project plugins folder and Restart from your IDE");
+		FMessageDialog::Open(EAppMsgType::Ok, Msg);
+		return FReply::Handled();
+	}
 	TArray<UScriptStruct*> StructsToProcess;
-	const ULinkProtobufEditorSettings* Settings = ULinkProtobufEditorSettings::Get();
 	const TArray<TSoftObjectPtr<UUserDefinedStruct>>& SettingStructs = Settings->UserDefinedStructsForProtobuf;
 	TArray<FString>MissingStructs;
 	for (const TSoftObjectPtr<UUserDefinedStruct>& StructPtr : SettingStructs)
@@ -152,15 +161,7 @@ FReply FLinkProtobufEditorSettingsCustomization::OnButtonGenerateProtoFromSettin
 		FMessageDialog::Open(EAppMsgType::Ok, FText::FromString(FString::Printf(TEXT("Some UserDefinedStructs are missing or invalid:\n%s \nPlease Rechoose them!"), *MissingStr)));
 		return FReply::Handled();
 	}
-	//Make sure Plugin is in Project path.
-	FString EnginePath=FPaths::EngineDir();
-	if (Settings->GetDefaultProtobufGenPath().Contains(EnginePath))
-	{
-		const FText Title = LOCTEXT("Generate Path Error", "Generate Path Error");
-		const FText Msg = LOCTEXT("Plugin Must Be In Project.Please Copy it to your Project Plugins Folder", "The Protobuf Generate Files must be in your project directory that can be Complied. Please copy the plugin to your project plugins folder and Restart from your IDE");
-		FMessageDialog::Open(EAppMsgType::Ok, Msg);
-		return FReply::Handled();
-	}
+
 	ULinkProtobufEditorFunctionLibrary::GenerateProtoFile(StructsToProcess);
 	ULinkProtobufEditorFunctionLibrary::GenerateProtoCppFile();
 	return FReply::Handled();

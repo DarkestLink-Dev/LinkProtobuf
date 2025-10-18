@@ -1,5 +1,6 @@
 // Copyright DarkestLink-Dev 2025 All Rights Reserved.
 
+using System;
 using System.IO;
 using System.Runtime.InteropServices;
 using UnrealBuildTool;
@@ -38,48 +39,36 @@ public class LinkProtobufRuntime : ModuleRules
 #else
 		bEnableUndefinedIdentifierWarnings = false;
 #endif
-
         string ThirdPartyDir = Path.Combine(PluginDirectory, "Source","ThirdParty");
-
-        if (Target.ProjectFile != null)
-        {
-	        string ProjectFilePath = Target.ProjectFile.ToString();
-	        string ProjectName = Path.GetFileNameWithoutExtension(ProjectFilePath);
-	        System.Console.WriteLine($"Project Name: {ProjectName}");
-			string ProtoSourceDir = Path.Combine(PluginDirectory, "Source", "ProtoSource", ProjectName);
-			PublicIncludePaths.Add(ProtoSourceDir);
-        }
+		string ProjectFilePath = Target.ProjectFile.ToString();
+		string ProtoSourceDir = Path.Combine(ModuleDirectory, "Public", "ProtoSource");
+		PublicIncludePaths.Add(ProtoSourceDir);
+		if (!Directory.Exists(ProtoSourceDir))
+		{
+			Directory.CreateDirectory(ProtoSourceDir);
+		}
         PublicSystemIncludePaths.AddRange(new string[]
         {
             //Protobuf header files
             Path.Combine(ThirdPartyDir,"include"),
+            //Generated Proto files
+            ProtoSourceDir,
         });
 
         if (Target.Platform == UnrealTargetPlatform.Win64)
         {
 	        if (RuntimeInformation.ProcessArchitecture == Architecture.X64)
 	        {
-	       		if (Target.bBuildEditor)
-	       		{
-			        //Use DLLs in Editor
-		   		    PublicDefinitions.Add("PROTOBUF_USE_DLLS=1");
-			        string Win64ProtoDLL = Path.Combine(ThirdPartyDir, "Win64/bin/libprotobuf.dll");
-			        PublicDelayLoadDLLs.Add(Win64ProtoDLL);
-			        RuntimeDependencies.Add(Win64ProtoDLL);
-	       		}
-	       		if (Target.Configuration == UnrealTargetConfiguration.Shipping)
-	       		{
-			        string Win64Protolib = Path.Combine(ThirdPartyDir, "Win64/Release");
-			        PublicAdditionalLibraries.AddRange(new string[]
-			        {
-				        Path.Combine(Win64Protolib, "libprotobuf.lib"),
-			        });
-	       		}
+				string Win64Protolib = Path.Combine(ThirdPartyDir, "Win64/lib");
+				PublicAdditionalLibraries.AddRange(new string[]
+				{
+					Path.Combine(Win64Protolib, "libprotobuf.lib"),
+				});
             }
 
             if (RuntimeInformation.ProcessArchitecture == Architecture.Arm64)
             {
-                string WinArm64Protolib = Path.Combine(ThirdPartyDir, "WinArm64/Release");
+                string WinArm64Protolib = Path.Combine(ThirdPartyDir, "WinArm64/lib");
                 PublicAdditionalLibraries.AddRange(new string[]
                 {
                     Path.Combine(WinArm64Protolib, "libprotobuf.lib"),
@@ -92,7 +81,7 @@ public class LinkProtobufRuntime : ModuleRules
             var ABI = new[] { "armeabi-v7a", "arm64-v8a", "x86_64" };
             foreach (var abi in ABI)
             {
-                string AndroidProtolib = Path.Combine(ThirdPartyDir, "Android", abi, "Release");
+                string AndroidProtolib = Path.Combine(ThirdPartyDir, "Android", abi, "lib");
                 PublicAdditionalLibraries.AddRange(new string[]
                 {
                     Path.Combine(AndroidProtolib, "libprotobuf.a"),
@@ -102,7 +91,7 @@ public class LinkProtobufRuntime : ModuleRules
 
         if (Target.Platform == UnrealTargetPlatform.Linux)
         {
-            string LinuxProtolib = Path.Combine(ThirdPartyDir, "Linux", "Release");
+            string LinuxProtolib = Path.Combine(ThirdPartyDir, "Linux", "lib");
             PublicAdditionalLibraries.AddRange(new string[]
             {
                 Path.Combine(LinuxProtolib, "libprotobuf.a"),
@@ -115,7 +104,7 @@ public class LinkProtobufRuntime : ModuleRules
         if (Target.Platform == UnrealTargetPlatform.LinuxAArch64)
 #endif
         {
-            string LinuxAArchProtolib = Path.Combine(ThirdPartyDir, "LinuxAArch64", "Release");
+            string LinuxAArchProtolib = Path.Combine(ThirdPartyDir, "LinuxAArch64", "lib");
             PublicAdditionalLibraries.AddRange(new string[]
             {
                 Path.Combine(LinuxAArchProtolib, "libprotobuf.a"),
