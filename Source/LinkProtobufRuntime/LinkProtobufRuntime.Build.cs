@@ -10,7 +10,6 @@ public class LinkProtobufRuntime : ModuleRules
 	public LinkProtobufRuntime(ReadOnlyTargetRules Target) : base(Target)
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
-		bUseRTTI = true;
 		PublicDefinitions.Add("_CRT_SECURE_NO_WARNINGS");
 		PublicDependencyModuleNames.AddRange(
 			new string[]
