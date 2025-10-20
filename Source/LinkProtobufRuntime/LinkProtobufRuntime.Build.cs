@@ -39,7 +39,6 @@ public class LinkProtobufRuntime : ModuleRules
 		bEnableUndefinedIdentifierWarnings = false;
 #endif
         string ThirdPartyDir = Path.Combine(PluginDirectory, "Source","ThirdParty");
-		string ProjectFilePath = Target.ProjectFile.ToString();
 		string ProtoSourceDir = Path.Combine(ModuleDirectory, "Public", "ProtoSource");
 		PublicIncludePaths.Add(ProtoSourceDir);
 		if (!Directory.Exists(ProtoSourceDir))
