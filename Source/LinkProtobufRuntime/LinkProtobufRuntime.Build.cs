@@ -57,11 +57,33 @@ public class LinkProtobufRuntime : ModuleRules
         {
 	        if (RuntimeInformation.ProcessArchitecture == Architecture.X64)
 	        {
-				string Win64Protolib = Path.Combine(ThirdPartyDir, "Win64/lib");
-				PublicAdditionalLibraries.AddRange(new string[]
-				{
-					Path.Combine(Win64Protolib, "libprotobuf.lib"),
-				});
+		        if (Target.bBuildEditor)
+		        {
+			        //Use DLLs in Editor
+			        PublicDefinitions.Add("PROTOBUF_USE_DLLS=1");
+			        string Win64Protolib = Path.Combine(ThirdPartyDir, "Win64","bin","libprotobuf.lib");
+			        PublicAdditionalLibraries.Add(Win64Protolib);
+			        string Win64ProtoDLL = Path.Combine(ThirdPartyDir, "Win64","bin","libprotobuf.dll");
+			        if (Target.ProjectFile != null)
+			        {
+				        string DestDLLPath = Path.Combine(Target.ProjectFile.Directory.ToString(),"Binaries","Win64","libprotobuf.dll");
+				        if (!File.Exists(DestDLLPath))
+				        {
+					        File.Copy(Win64ProtoDLL, DestDLLPath);
+				        }
+				        PublicDelayLoadDLLs.Add(Win64ProtoDLL);
+				        RuntimeDependencies.Add(DestDLLPath,Win64ProtoDLL);
+			        }
+		        }
+		        if (Target.Configuration == UnrealTargetConfiguration.Shipping)
+		        {
+			        string Win64Protolib = Path.Combine(ThirdPartyDir, "Win64/lib");
+			        PublicAdditionalLibraries.AddRange(new string[]
+			        {
+				        Path.Combine(Win64Protolib, "libprotobuf.lib"),
+			        });
+		        }
+
             }
 
             if (RuntimeInformation.ProcessArchitecture == Architecture.Arm64)
