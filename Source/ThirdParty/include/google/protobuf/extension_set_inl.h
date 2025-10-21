@@ -34,11 +34,7 @@
 #include <google/protobuf/extension_set.h>
 #include <google/protobuf/metadata_lite.h>
 #include <google/protobuf/parse_context.h>
-#ifdef _MSC_VER
-// MSVC generates a lot of C4800 warnings in this file.
-#pragma warning(disable: 4800)
-#pragma warning(disable 4946)
-#endif
+
 namespace google {
 namespace protobuf {
 namespace internal {

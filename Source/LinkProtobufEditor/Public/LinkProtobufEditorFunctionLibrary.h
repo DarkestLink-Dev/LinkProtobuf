@@ -80,6 +80,8 @@ public:
 	static bool CheckCppProject();
 
 	static bool RebuildThisPlugin();
+
+	static bool AppendExtensionForFile(const FString& FilePath, const FString& Extension);
 protected:
 	UPROPERTY(BlueprintReadWrite,EditAnywhere, Category = "LinkProtobuf|Editor")
 	TArray<UScriptStruct*> ProtoBoundStructs;

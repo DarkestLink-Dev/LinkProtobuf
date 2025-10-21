@@ -427,9 +427,6 @@ inline PROTOBUF_NDEBUG_INLINE void InlinedStringField::InternalSwap(
     MessageLite* lhs_msg,  //
     InlinedStringField* rhs, Arena* rhs_arena, bool rhs_arena_dtor_registered,
     MessageLite* rhs_msg) {
-#ifndef GOOGLE_PROTOBUF_INTERNAL_DONATE_STEAL_INLINE
-#define GOOGLE_PROTOBUF_INTERNAL_DONATE_STEAL_INLINE 0
-#endif
 #if GOOGLE_PROTOBUF_INTERNAL_DONATE_STEAL_INLINE
   lhs->get_mutable()->swap(*rhs->get_mutable());
   if (!lhs_arena_dtor_registered && rhs_arena_dtor_registered) {

@@ -37,10 +37,7 @@
 #include <google/protobuf/map.h>
 #include <google/protobuf/map_field.h>
 #include <google/protobuf/map_type_handler.h>
-#ifdef _MSC_VER
-#pragma warning(disable: 4800)
-#pragma warning(disable: 4946)
-#endif
+
 #ifdef SWIG
 #error "You cannot SWIG proto headers"
 #endif

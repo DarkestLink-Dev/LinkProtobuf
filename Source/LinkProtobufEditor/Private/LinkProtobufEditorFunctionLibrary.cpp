@@ -315,6 +315,16 @@ void ULinkProtobufEditorFunctionLibrary::GenerateProtoCppFile()
     }
 
     FString ProtocPath = ULinkProtobufEditorSettings::Get()->ProtocExecutePath;
+	const FString CleanProtocPath = FPaths::Combine(FPaths::GetPath(ProtocPath), FPaths::GetBaseFilename(ProtocPath));
+
+#if PLATFORM_WINDOWS
+	if (!AppendExtensionForFile(CleanProtocPath, TEXT("exe")))
+	{
+		FText Msg = FText::Format(LOCTEXT("ProtocExeExtensionContent", "The protoc.exe not found,Please manually download it from github pages to the path: {0}."), FText::FromString(ProtocPath));
+		FMessageDialog::Open(EAppMsgType::Ok, Msg);
+		return;
+	}
+#endif
     // Verify the protoc executable exists
     if (ProtocPath.IsEmpty() || !FPaths::FileExists(ProtocPath))
     {
@@ -326,6 +336,7 @@ void ULinkProtobufEditorFunctionLibrary::GenerateProtoCppFile()
 #endif
         return;
     }
+
 
     FString ProtoFilePath = GetProtoFilePath();
     FString ProtocCommand = FString::Printf(TEXT("%s Protoc --proto_path=\"%s\" --cpp_out=\"%s\" \"%s\""),
@@ -362,7 +373,7 @@ void ULinkProtobufEditorFunctionLibrary::GenerateProtoCppFile()
 			Info.ExpireDuration = 10.0f;
 			Info.bFireAndForget = true;
 			FSlateNotificationManager::Get().AddNotification(Info);
-        	RebuildThisPlugin();
+        	//RebuildThisPlugin();
 #endif
         	return;
         });
@@ -510,5 +521,43 @@ bool ULinkProtobufEditorFunctionLibrary::RebuildThisPlugin()
 
 	return ReturnCode == 0;
 }
+
+bool ULinkProtobufEditorFunctionLibrary::AppendExtensionForFile(const FString& FilePath, const FString& Extension)
+{
+	if (FilePath.IsEmpty())
+	{
+		return false;
+	}
+	FString Ext = Extension;
+	Ext.TrimStartAndEndInline();
+	if (Ext.IsEmpty())
+	{
+		return false;
+	}
+	if (!Ext.StartsWith(TEXT(".")))
+	{
+		Ext = TEXT(".") + Ext;
+	}
+	if (FilePath.EndsWith(Ext, ESearchCase::IgnoreCase))
+	{
+		return IFileManager::Get().FileExists(*FilePath);
+	}
+
+	const FString DestPath = FilePath + Ext;
+
+	IFileManager& FM = IFileManager::Get();
+
+	if (!FM.FileExists(*FilePath))
+	{
+		return false;
+	}
+
+	if (FM.FileExists(*DestPath))
+	{
+		return false;
+	}
+	return FM.Move(*DestPath, *FilePath, false, true);
+}
+
 
 #undef LOCTEXT_NAMESPACE
