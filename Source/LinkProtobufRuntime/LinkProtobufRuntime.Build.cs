@@ -28,16 +28,19 @@ public class LinkProtobufRuntime : ModuleRules
 				"JsonUtilities",
 			}
 		);
-#if UE_5_6_OR_LATER
+		#if UE_5_6_OR_LATER
         CppCompileWarningSettings.ShadowVariableWarningLevel = WarningLevel.Off;
         CppCompileWarningSettings.UndefinedIdentifierWarningLevel = WarningLevel.Off;
-#elif UE_4_24_OR_LATER
+		#elif UE_5_2_OR_LATER
 		ShadowVariableWarningLevel = WarningLevel.Off;
 		UndefinedIdentifierWarningLevel = WarningLevel.Off;
-#else
+		#elif  UE_4_24_OR_LATER
+		ShadowVariableWarningLevel = WarningLevel.Off;
+		bEnableUndefinedIdentifierWarnings = false;
+		#else
 		bEnableShadowVariableWarnings = false;
 		bEnableUndefinedIdentifierWarnings = false;
-#endif
+		#endif
 
         string ThirdPartyDir = Path.Combine(PluginDirectory, "Source","ThirdParty");
 		string ProtoSourceDir = Path.Combine(ModuleDirectory, "Public", "ProtoSource");
