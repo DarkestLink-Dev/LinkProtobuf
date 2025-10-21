@@ -25,6 +25,7 @@
 #include "Blueprint/BlueprintExceptionInfo.h"
 #endif
 #include "google/protobuf/descriptor.pb.h"
+#include "JsonObjectConverter.h"
 
 #define LOCTEXT_NAMESPACE "ProtoAssetsFunctionLibrary"
 
@@ -136,6 +137,40 @@ DEFINE_FUNCTION(ULinkProtobufFunctionLibrary::execStructToBinaryProtoBytes)
 		BytesAsHex += FString::Printf(TEXT("%02X "), Byte);
 	}
 	UE_LOG(LogProto, VeryVerbose, TEXT("Proto Raw Bytes: %s"), *BytesAsHex);
+
+	*StaticCast<bool*>(RESULT_PARAM) = bResult;
+}
+
+DEFINE_FUNCTION(ULinkProtobufFunctionLibrary::execDebugStructToJsonString)
+{
+	Stack.StepCompiledIn<FProperty>(nullptr);
+	FProperty* ValueProperty = Stack.MostRecentProperty;
+	void* ValuePtr = Stack.MostRecentPropertyAddress;
+	PARAM_PASSED_BY_REF(OutJsonString, FStrProperty, FString);
+
+	P_FINISH;
+
+	if (!ValueProperty || !ValuePtr)
+	{
+		const FBlueprintExceptionInfo ExceptionInfo(
+			EBlueprintExceptionType::AccessViolation,
+			LOCTEXT("StructToJsonString_MissingInputProperty", "Failed to resolve the input parameter for StructToJsonString.")
+		);
+		FBlueprintCoreDelegates::ThrowScriptException(P_THIS, Stack, ExceptionInfo);
+	}
+
+	bool bResult;
+	FStructProperty* const StructProperty = CastField<FStructProperty>(ValueProperty);
+	if (!StructProperty)
+	{
+		bResult = false;
+		*StaticCast<bool*>(RESULT_PARAM) = bResult;
+		return;
+	}
+
+	P_NATIVE_BEGIN
+	bResult = FJsonObjectConverter::UStructToJsonObjectString(StructProperty->Struct, ValuePtr, OutJsonString);
+	P_NATIVE_END
 
 	*StaticCast<bool*>(RESULT_PARAM) = bResult;
 }

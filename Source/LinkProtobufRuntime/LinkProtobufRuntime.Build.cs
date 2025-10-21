@@ -24,20 +24,21 @@ public class LinkProtobufRuntime : ModuleRules
 			{
 				"Slate",
 				"SlateCore",
+				"Json",
+				"JsonUtilities",
 			}
 		);
 #if UE_5_6_OR_LATER
         CppCompileWarningSettings.ShadowVariableWarningLevel = WarningLevel.Off;
+        CppCompileWarningSettings.UndefinedIdentifierWarningLevel = WarningLevel.Off;
 #elif UE_4_24_OR_LATER
 		ShadowVariableWarningLevel = WarningLevel.Off;
+		UndefinedIdentifierWarningLevel = WarningLevel.Off;
 #else
 		bEnableShadowVariableWarnings = false;
-#endif
-#if UE_5_5_OR_LATER
-        CppCompileWarningSettings.UndefinedIdentifierWarningLevel = WarningLevel.Off;
-#else
 		bEnableUndefinedIdentifierWarnings = false;
 #endif
+
         string ThirdPartyDir = Path.Combine(PluginDirectory, "Source","ThirdParty");
 		string ProtoSourceDir = Path.Combine(ModuleDirectory, "Public", "ProtoSource");
 		PublicIncludePaths.Add(ProtoSourceDir);

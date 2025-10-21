@@ -28,17 +28,25 @@ class LINKPROTOBUFRUNTIME_API ULinkProtobufFunctionLibrary : public UBlueprintFu
 	GENERATED_BODY()
 public:
 
-	UFUNCTION(BlueprintCallable, CustomThunk, Category = "Proto", meta = (DisplayName = "Convert Struct To Proto Binary  String", CustomStructureParam = "Struct", AutoCreateRefTerm = "Struct"))
+	/**LinkProtobuf Runtime Function, Use it  After Generate Proto files from Project-Plugin Setting */
+	UFUNCTION(BlueprintCallable, CustomThunk, Category = "LinkProtobuf|Runtime", meta = (DisplayName = "Convert Struct To Proto Binary  String", CustomStructureParam = "Struct", AutoCreateRefTerm = "Struct"))
 	static UPARAM(DisplayName = "Success") bool StructToBinaryProtoString(const int32& Struct, FString& OutProtoBinaryString);
 	DECLARE_FUNCTION(execStructToBinaryProtoString);
 
-	UFUNCTION(BlueprintCallable, CustomThunk, Category = "Proto", meta = (DisplayName = "Convert Struct To Proto Binary  Bytes", CustomStructureParam = "Struct", AutoCreateRefTerm = "Struct"))
+	/**LinkProtobuf Runtime Function, Use it  After Generate Proto files from Project-Plugin Setting */
+	UFUNCTION(BlueprintCallable, CustomThunk, Category = "LinkProtobuf|Runtime", meta = (DisplayName = "Convert Struct To Proto Binary  Bytes", CustomStructureParam = "Struct", AutoCreateRefTerm = "Struct"))
 	static UPARAM(DisplayName = "Success") bool StructToBinaryProtoBytes(const int32& Struct, TArray<uint8>& OutProtoBinaryBytes);
 	DECLARE_FUNCTION(execStructToBinaryProtoBytes);
+
+	/**Debug helper: Convert an arbitrary struct to a JSON string (for inspection) */
+	UFUNCTION(BlueprintCallable, CustomThunk, Category = "LinkProtobuf|Debug", meta = (DisplayName = "Debug Struct To Json String", CustomStructureParam = "Struct", AutoCreateRefTerm = "Struct"))
+	static UPARAM(DisplayName="Success") bool DebugStructToJsonString(const int32& Struct, FString& OutJsonString);
+	DECLARE_FUNCTION(execDebugStructToJsonString);
 
 	static bool ConvertStructToBinaryProtoBytes(const UStruct* StructDefinition, const void* Struct, TArray<uint8>& OutProtoBinaryBytes);
 
 	static bool ConvertStructToBinaryProtoString(const UStruct* StructDefinition, const void* Struct, std::string& OutProtoBinaryString);
+
 
 private:
 	// Helper function to extract common struct to protobuf message conversion logic
@@ -51,8 +59,8 @@ public:
 	static bool SerializeMessageToBinaryString(google::protobuf::Message* message, std::string& OutProtoBinaryString, const FString& StructName = TEXT("Unknown"));
 
 	static bool SerializeMessageToBinaryBytes(google::protobuf::Message* message, TArray<uint8>& OutProtoBinaryBytes, const FString& StructName = TEXT("Unknown"));
-
-	UFUNCTION(BlueprintCallable, CustomThunk, Category = "Proto", meta = (DisplayName = "Convert Proto Binary Bytes To Struct", CustomStructureParam = "ResultStruct", AutoCreateRefTerm = "ResultStruct"))
+	/**LinkProtobuf Runtime Function, Use it  After Generate Proto files from Project-Plugin Setting */
+	UFUNCTION(BlueprintCallable, CustomThunk, Category = "LinkProtobuf|Runtime", meta = (DisplayName = "Convert Proto Binary Bytes To Struct", CustomStructureParam = "ResultStruct", AutoCreateRefTerm = "ResultStruct"))
 	static UPARAM(DisplayName="Success") bool ProtoBinaryBytesToStruct(UScriptStruct* StructDefinition, bool bAllowIncomplete,const TArray<uint8>& ProtoBinaryBytes, int32& ResultStruct);
 	DECLARE_FUNCTION(execProtoBinaryBytesToStruct);
 
