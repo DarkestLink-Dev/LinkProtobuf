@@ -29,7 +29,7 @@ FString ULinkProtobufEditorSettings::GetDefaultProtocExecPath() const
 		// Set the ProtocExecutePath based on the platform
 		if (PLATFORM_WINDOWS)
 		{
-			return FPaths::Combine(ProtoThirdPartyDir, TEXT("Win64/protoc"));
+			return FPaths::Combine(ProtoThirdPartyDir, TEXT("Win64/protoc.exe"));
 		}
 		else if (PLATFORM_LINUX)
 		{

@@ -21,7 +21,7 @@
 #include "UObject/Field.h"
 #include "UObject/TextProperty.h"
 #include "Runtime/Launch/Resources/Version.h"
-#if ENGINE_MAJOR_VERSION >=5 && ENGINE_MINOR_VERSION>=1
+#if ENGINE_MAJOR_VERSION >=5 && ENGINE_MINOR_VERSION>=4
 #include "Blueprint/BlueprintExceptionInfo.h"
 #endif
 #include "google/protobuf/descriptor.pb.h"
@@ -39,35 +39,14 @@ using Arena                = google::protobuf::Arena;
 using DescriptorPool       = google::protobuf::DescriptorPool;
 using MessageFactory       = google::protobuf::MessageFactory;
 
-TArray<FString> ULinkProtobufFunctionLibrary::ParseArrayString(const FString& ArrayString)
+
+
+bool ULinkProtobufFunctionLibrary::StructToBinaryProtoString(const int32& Struct, FString& OutProtoBinaryString)
 {
-    TArray<FString> Values;
-    FString CleanedString = ArrayString;
-
-    CleanedString = CleanedString.TrimStartAndEnd();
-    CleanedString = CleanedString.Replace(TEXT("("), TEXT(""));
-    CleanedString = CleanedString.Replace(TEXT(")"), TEXT(""));
-    CleanedString = CleanedString.Replace(TEXT("["), TEXT(""));
-    CleanedString = CleanedString.Replace(TEXT("]"), TEXT(""));
-    CleanedString = CleanedString.TrimStartAndEnd();
-
-    if (CleanedString.IsEmpty())
-    {
-        return Values;
-    }
-
-    // Use ParseIntoArray to split and clean each value
-    CleanedString.ParseIntoArray(Values, TEXT(","), true);
-    for (FString& Val : Values)
-    {
-        Val = Val.TrimStartAndEnd();
-        Val = Val.Replace(TEXT("\""), TEXT(""));
-        Val = Val.Replace(TEXT("'"), TEXT(""));
-    }
-
-    return Values;
+	// We should never hit this! stubs to avoid NoExport on the class.
+	checkNoEntry();
+	return false;
 }
-
 
 DEFINE_FUNCTION(ULinkProtobufFunctionLibrary::execStructToBinaryProtoString)
 {
@@ -102,6 +81,14 @@ DEFINE_FUNCTION(ULinkProtobufFunctionLibrary::execStructToBinaryProtoString)
 
 	*StaticCast<bool*>(RESULT_PARAM) = bResult;
 }
+
+bool ULinkProtobufFunctionLibrary::StructToBinaryProtoBytes(const int32& Struct, TArray<uint8>& OutProtoBinaryBytes)
+{
+	// We should never hit this! stubs to avoid NoExport on the class.
+	checkNoEntry();
+	return false;
+}
+
 DEFINE_FUNCTION(ULinkProtobufFunctionLibrary::execStructToBinaryProtoBytes)
 {
 	Stack.StepCompiledIn<FProperty>(nullptr);
@@ -129,7 +116,6 @@ DEFINE_FUNCTION(ULinkProtobufFunctionLibrary::execStructToBinaryProtoBytes)
 		return;
 	}
 
-	std::string OutProtoBinaryString;
 	bResult = P_THIS->ConvertStructToBinaryProtoBytes(StructProperty->Struct, ValuePtr,OutProtoBinaryBytes);
 
 	FString BytesAsHex;
@@ -139,6 +125,13 @@ DEFINE_FUNCTION(ULinkProtobufFunctionLibrary::execStructToBinaryProtoBytes)
 	UE_LOG(LogProto, VeryVerbose, TEXT("Proto Raw Bytes: %s"), *BytesAsHex);
 
 	*StaticCast<bool*>(RESULT_PARAM) = bResult;
+}
+
+bool ULinkProtobufFunctionLibrary::DebugStructToJsonString(const int32& Struct, FString& OutJsonString)
+{
+	// We should never hit this! stubs to avoid NoExport on the class.
+	checkNoEntry();
+	return false;
 }
 
 DEFINE_FUNCTION(ULinkProtobufFunctionLibrary::execDebugStructToJsonString)
@@ -530,6 +523,13 @@ bool ULinkProtobufFunctionLibrary::SerializeMessageToBinaryBytes(
 	return true;
 }
 
+bool ULinkProtobufFunctionLibrary::ProtoBinaryBytesToStruct(UScriptStruct* StructDefinition, bool bAllowIncomplete,
+	const TArray<uint8>& ProtoBinaryBytes, int32& ResultStruct)
+{
+	// We should never hit this! stubs to avoid NoExport on the class.
+	checkNoEntry();
+	return false;
+}
 
 DEFINE_FUNCTION(ULinkProtobufFunctionLibrary::execProtoBinaryBytesToStruct)
 {
@@ -652,7 +652,7 @@ bool ULinkProtobufFunctionLibrary::FillProtoMessageIntoUStruct(const google::pro
             int Size = EntyRef->FieldSize(EntryMsg, Fd);
             if (Wanted < 0 || Wanted >= Size)
             {
-                UE_LOG(LogProto, Error, TEXT("Proto WritePrimitiveToProperty: index %d out of range %d for field %s"), Wanted, Size, UTF8_TO_TCHAR(Fd->name().c_str()));
+                UE_LOG(LogProto, Error, TEXT("Proto WritePrimitiveToProperty: index %d out of range %d for field %s"), Wanted, Size, *FString(UTF8_TO_TCHAR(Fd->name().c_str())));
                 return false;
             }
             return true;
@@ -671,14 +671,12 @@ bool ULinkProtobufFunctionLibrary::FillProtoMessageIntoUStruct(const google::pro
     			const int size = EntyRef->FieldSize(EntryMsg, Fd);
     			if (Index < 0 || Index >= size)
     			{
-    				UE_LOG(LogProto, Error, TEXT("Proto GetStringLikeValue: Index %d out of range %d for [%s]"),
-				   Index, size, UTF8_TO_TCHAR(Fd->name().c_str()));
+    				UE_LOG(LogProto, Error, TEXT("Proto GetStringLikeValue: Index %d out of range %d for [%s]"),Index, size, *FString(UTF8_TO_TCHAR(Fd->name().c_str())));
     				return false;
     			}
     			if (!bStringOrBytes)
     			{
-    				UE_LOG(LogProto, Error, TEXT("Proto GetStringLikeValue: Field [%s] is repeated but not string/bytes (type=%d)"),
-				   UTF8_TO_TCHAR(Fd->name().c_str()), (int)Fd->type());
+    				UE_LOG(LogProto, Error, TEXT("Proto GetStringLikeValue: Field [%s] is repeated but not string/bytes (type=%d)"),*FString(UTF8_TO_TCHAR(Fd->name().c_str())), (int)Fd->type());
     				return false;
     			}
     			Out = EntyRef->GetRepeatedString(EntryMsg, Fd, Index);
@@ -688,8 +686,7 @@ bool ULinkProtobufFunctionLibrary::FillProtoMessageIntoUStruct(const google::pro
     		{
     			if (!bStringOrBytes)
     			{
-    				UE_LOG(LogProto, Error, TEXT("Proto GetStringLikeValue: Field [%s] is not string/bytes (type=%d)"),
-				   UTF8_TO_TCHAR(Fd->name().c_str()), (int)Fd->type());
+    				UE_LOG(LogProto, Error, TEXT("Proto GetStringLikeValue: Field [%s] is not string/bytes (type=%d)"),*FString(UTF8_TO_TCHAR(Fd->name().c_str())), (int)Fd->type());
     				return false;
     			}
     			Out = EntyRef->GetString(EntryMsg, Fd);
@@ -839,13 +836,14 @@ bool ULinkProtobufFunctionLibrary::FillProtoMessageIntoUStruct(const google::pro
         		{
         			uint8 V = value.empty() ? 0 : static_cast<uint8>(value[0]);
         			BP->SetPropertyValue(Dest, V);
+        			return true; // handled bytes -> uint8, prevent fallthrough
         		}
         	}
         default:
-            UE_LOG(LogProto, Warning, TEXT("Proto WritePrimitiveToProperty: unhandled fd type %d (%s)"), (int)Fd->type(), UTF8_TO_TCHAR(Fd->name().c_str()));
+            UE_LOG(LogProto, Warning, TEXT("Proto WritePrimitiveToProperty: unhandled fd type %d (%hs)"), (int)Fd->type(), Fd->name().c_str());
             return false;
         }
-        UE_LOG(LogProto, Warning, TEXT("Proto WritePrimitiveToProperty: property type mismatch for field %s -> %s"), UTF8_TO_TCHAR(Fd->name().c_str()), *Prop->GetName());
+        UE_LOG(LogProto, Warning, TEXT("Proto WritePrimitiveToProperty: property type mismatch for field %hs -> %s"), Fd->name().c_str(), *Prop->GetName());
         return false;
     };
 
@@ -857,8 +855,8 @@ bool ULinkProtobufFunctionLibrary::FillProtoMessageIntoUStruct(const google::pro
         const FieldDescriptor* FD = F_Desc->FindFieldByName(ProtoFieldName);
         if (!FD)
         {
-        	UE_LOG(LogProto, Warning, TEXT("Proto WritePrimitiveToProperty: field %s not found in message %s, skip"), *FieldNameUE, UTF8_TO_TCHAR(F_Desc->name().c_str()));
-			continue;
+            UE_LOG(LogProto, Warning, TEXT("Proto WritePrimitiveToProperty: field %s not found in message %s, skip"), *FieldNameUE, *FString(UTF8_TO_TCHAR(F_Desc->name().c_str())));
+            continue;
         }
 		//Deserialize Map type
         if (FD->is_map())
@@ -969,22 +967,22 @@ bool ULinkProtobufFunctionLibrary::SetFieldValue(google::protobuf::Message* targ
 #else
 	Property->ExportText_Direct(PropertyValue, containerPtr, nullptr, nullptr, PPF_None);
 #endif
-	UE_LOG(LogProto, Log, TEXT("Proto Setting Property %s field %s with value %s"), *Property->GetName(), UTF8_TO_TCHAR(field->name().c_str()), *PropertyValue);
+	UE_LOG(LogProto, Log, TEXT("Proto Setting Property %s field %s with value %s"), *Property->GetName(), *FString(UTF8_TO_TCHAR(field->name().c_str())), *PropertyValue);
 	const google::protobuf::Reflection* fieldReflection = targetMsg->GetReflection();
 	const bool bIsRepeated = field->is_repeated();
 	if (!targetMsg || !field) {
 		UE_LOG(LogProto, Error, TEXT("Null target message or field descriptor"));
-		UE_LOG(LogProto, Error, TEXT("Proto SetFieldValue FAILED for Property %s field %s"), *Property->GetName(), UTF8_TO_TCHAR(field->name().c_str()));
+		UE_LOG(LogProto, Error, TEXT("Proto SetFieldValue FAILED for Property %s field %s"), *Property->GetName(), *FString(UTF8_TO_TCHAR(field->name().c_str())));
 		return false;
 	}
 	if (!fieldReflection) {
 		UE_LOG(LogProto, Error, TEXT("Null Reflection for target message"));
-		UE_LOG(LogProto, Error, TEXT("Proto SetFieldValue FAILED for Property %s field %s"), *Property->GetName(), UTF8_TO_TCHAR(field->name().c_str()));
+		UE_LOG(LogProto, Error, TEXT("Proto SetFieldValue FAILED for Property %s field %s"), *Property->GetName(), *FString(UTF8_TO_TCHAR(field->name().c_str())));
 		return false;
 	}
 	if (bIsRepeated)
 	{
-		UE_LOG(LogProto, Log, TEXT("Proto Field %s is repeated"), UTF8_TO_TCHAR(field->name().c_str()));
+		UE_LOG(LogProto, Log, TEXT("Proto Field %s is repeated"), *FString(UTF8_TO_TCHAR(field->name().c_str())));
 	}
 	// Handle basic types
 	bool bSetResult = false;
@@ -1113,16 +1111,43 @@ bool ULinkProtobufFunctionLibrary::SetFieldValue(google::protobuf::Message* targ
 		break;
 	default:
 		UE_LOG(LogProto, Warning, TEXT("Proto Unhandled field type: %d"), field->type());
-		UE_LOG(LogProto, Error, TEXT("Proto SetFieldValue FAILED for Property %s field %s"), *Property->GetName(), UTF8_TO_TCHAR(field->name().c_str()));
+		UE_LOG(LogProto, Error, TEXT("Proto SetFieldValue FAILED for Property %s field %s"), *Property->GetName(), *FString(UTF8_TO_TCHAR(field->name().c_str())));
 		return false;
 	}
 
-	UE_LOG(LogProto, Log, TEXT("Proto SetFieldValue SUCCESS for Property %s field %s value: %s"), *Property->GetName(), UTF8_TO_TCHAR(field->name().c_str()), *PropertyValue);
+	UE_LOG(LogProto, Log, TEXT("Proto SetFieldValue SUCCESS for Property %s field %s value: %s"), *Property->GetName(), *FString(UTF8_TO_TCHAR(field->name().c_str())), *PropertyValue);
 
 	return bSetResult;
 }
 
+TArray<FString> ULinkProtobufFunctionLibrary::ParseArrayString(const FString& ArrayString)
+{
+	TArray<FString> Values;
+	FString CleanedString = ArrayString;
 
+	CleanedString = CleanedString.TrimStartAndEnd();
+	CleanedString = CleanedString.Replace(TEXT("("), TEXT(""));
+	CleanedString = CleanedString.Replace(TEXT(")"), TEXT(""));
+	CleanedString = CleanedString.Replace(TEXT("["), TEXT(""));
+	CleanedString = CleanedString.Replace(TEXT("]"), TEXT(""));
+	CleanedString = CleanedString.TrimStartAndEnd();
+
+	if (CleanedString.IsEmpty())
+	{
+		return Values;
+	}
+
+	// Use ParseIntoArray to split and clean each value
+	CleanedString.ParseIntoArray(Values, TEXT(","), true);
+	for (FString& Val : Values)
+	{
+		Val = Val.TrimStartAndEnd();
+		Val = Val.Replace(TEXT("\""), TEXT(""));
+		Val = Val.Replace(TEXT("'"), TEXT(""));
+	}
+
+	return Values;
+}
 
 EProto3Type ULinkProtobufFunctionLibrary::AssignProtoType(const FProperty* InProp)
 {

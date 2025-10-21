@@ -285,7 +285,6 @@ void ULinkProtobufEditorFunctionLibrary::GenerateProtoCppFile()
 {
     FString PlatformBash;
     FString CommandPrefix;
-
 #if PLATFORM_WINDOWS
     PlatformBash = FPlatformMisc::GetEnvironmentVariable(TEXT("ComSpec"));
     CommandPrefix = TEXT("/C");
@@ -329,8 +328,9 @@ void ULinkProtobufEditorFunctionLibrary::GenerateProtoCppFile()
     }
 
     FString ProtoFilePath = GetProtoFilePath();
-    FString ProtocCommand = FString::Printf(TEXT("%s protoc --proto_path=\"%s\" --cpp_out=\"%s\" \"%s\""),
+    FString ProtocCommand = FString::Printf(TEXT("%s Protoc --proto_path=\"%s\" --cpp_out=\"%s\" \"%s\""),
         *CommandPrefix,
+        //*ProtocPath,
         *ULinkProtobufEditorSettings::Get()->GetDefaultProtobufGenPath(),
         *ULinkProtobufEditorSettings::Get()->GetDefaultProtobufGenPath(),
         *ProtoFilePath);
@@ -344,18 +344,16 @@ void ULinkProtobufEditorFunctionLibrary::GenerateProtoCppFile()
         FString StdOut;
         FString StdErr;
 #if ENGINE_MAJOR_VERSION>=5
-        bool bSuccessLocal = FPlatformProcess::ExecProcess(*CapturedPlatformBash, *CapturedProtocCommand, &ReturnCode, &StdOut, &StdErr, *CapturedWorkingDir,true);
+    	//FPlatformProcess::CreateProc(*CapturedPlatformBash, *CapturedProtocCommand, true, false, false, nullptr, 0, *CapturedWorkingDir, nullptr);
+    	FPlatformProcess::ExecProcess(*CapturedPlatformBash, *CapturedProtocCommand, &ReturnCode, &StdOut, &StdErr, *CapturedWorkingDir,true);
 #else
-    	bool bSuccessLocal = FPlatformProcess::ExecProcess(*CapturedPlatformBash, *CapturedProtocCommand, &ReturnCode, &StdOut, &StdErr, *CapturedWorkingDir);
+    	FPlatformProcess::ExecProcess(*CapturedPlatformBash, *CapturedProtocCommand, &ReturnCode, &StdOut, &StdErr, *CapturedWorkingDir);
 #endif
-        AsyncTask(ENamedThreads::GameThread, [bSuccessLocal, ReturnCode, StdOut, StdErr, CapturedProtocCommand]() {
+        AsyncTask(ENamedThreads::GameThread, [ReturnCode, StdOut, StdErr, CapturedProtocCommand]() {
+        	bool bSuccessLocal = (ReturnCode==0);
             UE_LOG(LogProtoEditor, Display, TEXT("Generate Protocpp (async): %s, Command: %s"), bSuccessLocal ? TEXT("Success") : TEXT("Failed"), *CapturedProtocCommand);
             UE_LOG(LogProtoEditor, Display, TEXT("Return code: %d"), ReturnCode);
             UE_LOG(LogProtoEditor, Display, TEXT("Command output: %s"), *StdOut);
-            if (!StdErr.IsEmpty())
-            {
-                UE_LOG(LogProtoEditor, Warning, TEXT("Generate Protocpp Failed! Error output:\n%s"), *StdErr);
-            }
 #if WITH_EDITOR
         	const FText Msg = bSuccessLocal
 			? FText::FromString(TEXT("ProtoCpp Generate Success. Please recompile your project from IDE."))
@@ -463,7 +461,6 @@ bool ULinkProtobufEditorFunctionLibrary::RebuildThisPlugin()
 	FString UBTPath = FPaths::Combine(EngineRoot, TEXT("Binaries/DotNET/UnrealBuildTool/UnrealBuildTool"));
 #endif
 
-	// 命令参数
 	FString Args = FString::Printf(
 		TEXT("\"%s\" Development Editor -Project=\"%s\" -Module=%s -TargetType=Editor -Progress -NoHotReloadFromIDE"),
 		&*FApp::GetProjectName(),
@@ -493,7 +490,6 @@ bool ULinkProtobufEditorFunctionLibrary::RebuildThisPlugin()
 		return false;
 	}
 
-	// 等待编译完成
 	FString Output;
 	while (FPlatformProcess::IsProcRunning(ProcHandle))
 	{

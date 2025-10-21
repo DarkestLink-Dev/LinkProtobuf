@@ -33,7 +33,7 @@ public class LinkProtobufRuntime : ModuleRules
         CppCompileWarningSettings.UndefinedIdentifierWarningLevel = WarningLevel.Off;
 		#elif UE_5_2_OR_LATER
 		ShadowVariableWarningLevel = WarningLevel.Off;
-		UndefinedIdentifierWarningLevel = WarningLevel.Off;
+		bEnableUndefinedIdentifierWarnings = false;
 		#elif  UE_4_24_OR_LATER
 		ShadowVariableWarningLevel = WarningLevel.Off;
 		bEnableUndefinedIdentifierWarnings = false;
@@ -70,7 +70,6 @@ public class LinkProtobufRuntime : ModuleRules
 			        Path.Combine(Win64Protolib, "libprotobuf.lib"),
 		        });
 	        }
-
             if (Target.Architecture == UnrealArch.Arm64)
             {
                 PublicAdditionalLibraries.AddRange(new string[]
