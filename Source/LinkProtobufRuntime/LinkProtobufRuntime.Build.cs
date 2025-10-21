@@ -59,23 +59,31 @@ public class LinkProtobufRuntime : ModuleRules
 
         if (Target.Platform == UnrealTargetPlatform.Win64)
         {
-	        if (RuntimeInformation.ProcessArchitecture == Architecture.X64)
-	        {
-				string Win64Protolib = Path.Combine(ThirdPartyDir, "Win64/lib");
-				PublicAdditionalLibraries.AddRange(new string[]
-				{
-					Path.Combine(Win64Protolib, "libprotobuf.lib"),
-				});
-            }
+	        string Win64Protolib = Path.Combine(ThirdPartyDir, "Win64/lib");
+	        string WinArm64Protolib = Path.Combine(ThirdPartyDir, "WinArm64/lib");
 
-            if (RuntimeInformation.ProcessArchitecture == Architecture.Arm64)
+			#if UE_5_3_OR_LATER
+	        if (Target.Architecture == UnrealArch.X64)
+	        {
+		        PublicAdditionalLibraries.AddRange(new string[]
+		        {
+			        Path.Combine(Win64Protolib, "libprotobuf.lib"),
+		        });
+	        }
+
+            if (Target.Architecture == UnrealArch.Arm64)
             {
-                string WinArm64Protolib = Path.Combine(ThirdPartyDir, "WinArm64/lib");
                 PublicAdditionalLibraries.AddRange(new string[]
                 {
                     Path.Combine(WinArm64Protolib, "libprotobuf.lib"),
                 });
             }
+            #else
+			PublicAdditionalLibraries.AddRange(new string[]
+			{
+				Path.Combine(Win64Protolib, "libprotobuf.lib"),
+			});
+            #endif
         }
 
         if (Target.Platform == UnrealTargetPlatform.Android)
