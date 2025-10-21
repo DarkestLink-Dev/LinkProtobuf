@@ -343,8 +343,11 @@ void ULinkProtobufEditorFunctionLibrary::GenerateProtoCppFile()
         int32 ReturnCode = -1;
         FString StdOut;
         FString StdErr;
+#if ENGINE_MAJOR_VERSION>=5
         bool bSuccessLocal = FPlatformProcess::ExecProcess(*CapturedPlatformBash, *CapturedProtocCommand, &ReturnCode, &StdOut, &StdErr, *CapturedWorkingDir,true);
-
+#else
+    	bool bSuccessLocal = FPlatformProcess::ExecProcess(*CapturedPlatformBash, *CapturedProtocCommand, &ReturnCode, &StdOut, &StdErr, *CapturedWorkingDir);
+#endif
         AsyncTask(ENamedThreads::GameThread, [bSuccessLocal, ReturnCode, StdOut, StdErr, CapturedProtocCommand]() {
             UE_LOG(LogProtoEditor, Display, TEXT("Generate Protocpp (async): %s, Command: %s"), bSuccessLocal ? TEXT("Success") : TEXT("Failed"), *CapturedProtocCommand);
             UE_LOG(LogProtoEditor, Display, TEXT("Return code: %d"), ReturnCode);
