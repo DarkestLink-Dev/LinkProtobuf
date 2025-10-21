@@ -17,6 +17,8 @@ public class LinkProtobufRuntime : ModuleRules
 				"Core",
 				"CoreUObject",
 				"Engine",
+				"Json",
+				"JsonUtilities",
 			}
 		);
 		PrivateDependencyModuleNames.AddRange(
@@ -24,8 +26,6 @@ public class LinkProtobufRuntime : ModuleRules
 			{
 				"Slate",
 				"SlateCore",
-				"Json",
-				"JsonUtilities",
 			}
 		);
 		#if UE_5_6_OR_LATER
