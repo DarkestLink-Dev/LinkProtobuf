@@ -318,13 +318,15 @@ void ULinkProtobufEditorFunctionLibrary::GenerateProtoCppFile()
 	const FString CleanProtocPath = FPaths::Combine(FPaths::GetPath(ProtocPath), FPaths::GetBaseFilename(ProtocPath));
 
 #if PLATFORM_WINDOWS
-	if (!AppendExtensionForFile(CleanProtocPath, TEXT("exe")))
-	{
-		FText Msg = FText::Format(LOCTEXT("ProtocExeExtensionContent", "The protoc.exe not found,Please manual download it from Document pages to the path: {0}."), FText::FromString(ProtocPath));
-		FMessageDialog::Open(EAppMsgType::Ok, Msg);
-		return;
-	}
+	AppendExtensionForFile(CleanProtocPath, TEXT("exe"));
 #endif
+    if (!FPaths::FileExists(ProtocPath))
+    {
+    	FText Msg = FText::Format(LOCTEXT("ProtocExeExtensionContent", "The protoc.exe not found,Please manual download it from Document pages to the path: {0}."), FText::FromString(ProtocPath));
+    	FMessageDialog::Open(EAppMsgType::Ok, Msg);
+    	return;
+    }
+
     // Verify the protoc executable exists
     if (ProtocPath.IsEmpty() || !FPaths::FileExists(ProtocPath))
     {
