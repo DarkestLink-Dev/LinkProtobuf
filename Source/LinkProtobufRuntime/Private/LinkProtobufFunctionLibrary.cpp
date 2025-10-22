@@ -698,9 +698,9 @@ bool ULinkProtobufFunctionLibrary::FillProtoMessageIntoUStruct(const google::pro
         auto GetEnumNumber = [&]()->int32
         {
             if (bRepeated)
-                return F_Ref->GetRepeatedEnumValue(EntryMsg, Fd, Index);
+                return EntyRef->GetRepeatedEnumValue(EntryMsg, Fd, Index);
             else
-                return F_Ref->GetEnumValue(EntryMsg, Fd);
+                return EntyRef->GetEnumValue(EntryMsg, Fd);
         };
 
         switch (Fd->type())
@@ -709,7 +709,7 @@ bool ULinkProtobufFunctionLibrary::FillProtoMessageIntoUStruct(const google::pro
             if (!EnsureIndex(Index)) return false;
             if (FIntProperty* IntP = CastField<FIntProperty>(Prop))
             {
-                int32 V = bRepeated ? F_Ref->GetRepeatedInt32(EntryMsg, Fd, Index) : F_Ref->GetInt32(EntryMsg, Fd);
+                int32 V = bRepeated ? EntyRef->GetRepeatedInt32(EntryMsg, Fd, Index) : EntyRef->GetInt32(EntryMsg, Fd);
             	IntP->SetPropertyValue(Dest,V);
                 return true;
             }
@@ -718,7 +718,7 @@ bool ULinkProtobufFunctionLibrary::FillProtoMessageIntoUStruct(const google::pro
             if (!EnsureIndex(Index)) return false;
             if (FInt64Property* Int64P = CastField<FInt64Property>(Prop))
             {
-                int64 V = bRepeated ? F_Ref->GetRepeatedInt64(EntryMsg, Fd, Index) : F_Ref->GetInt64(EntryMsg, Fd);
+                int64 V = bRepeated ? EntyRef->GetRepeatedInt64(EntryMsg, Fd, Index) : EntyRef->GetInt64(EntryMsg, Fd);
             	Int64P->SetPropertyValue(Dest,V);
                 return true;
             }
@@ -727,13 +727,13 @@ bool ULinkProtobufFunctionLibrary::FillProtoMessageIntoUStruct(const google::pro
             if (!EnsureIndex(Index)) return false;
             if (FUInt32Property* UInt32P = CastField<FUInt32Property>(Prop))
             {
-                uint32 V = bRepeated ? F_Ref->GetRepeatedUInt32(EntryMsg, Fd, Index) : F_Ref->GetUInt32(EntryMsg, Fd);
+                uint32 V = bRepeated ? EntyRef->GetRepeatedUInt32(EntryMsg, Fd, Index) : EntyRef->GetUInt32(EntryMsg, Fd);
             	UInt32P->SetPropertyValue(Dest,V);
                 return true;
             }
             if (FIntProperty* IntP2 = CastField<FIntProperty>(Prop))
             {
-                uint32 V = bRepeated ? F_Ref->GetRepeatedUInt32(EntryMsg, Fd, Index) : F_Ref->GetUInt32(EntryMsg, Fd);
+                uint32 V = bRepeated ? EntyRef->GetRepeatedUInt32(EntryMsg, Fd, Index) : EntyRef->GetUInt32(EntryMsg, Fd);
             	IntP2->SetPropertyValue(Dest,static_cast<int32>(V));
                 return true;
             }
@@ -742,13 +742,13 @@ bool ULinkProtobufFunctionLibrary::FillProtoMessageIntoUStruct(const google::pro
             if (!EnsureIndex(Index)) return false;
             if (FUInt64Property* UInt64P = CastField<FUInt64Property>(Prop))
             {
-                uint64 V = bRepeated ? F_Ref->GetRepeatedUInt64(EntryMsg, Fd, Index) : F_Ref->GetUInt64(EntryMsg, Fd);
+                uint64 V = bRepeated ? EntyRef->GetRepeatedUInt64(EntryMsg, Fd, Index) : EntyRef->GetUInt64(EntryMsg, Fd);
             	UInt64P->SetPropertyValue(Dest,V);
                 return true;
             }
             if (FInt64Property* Int64P2 = CastField<FInt64Property>(Prop))
             {
-                uint64 V = bRepeated ? F_Ref->GetRepeatedUInt64(EntryMsg, Fd, Index) : F_Ref->GetUInt64(EntryMsg, Fd);
+                uint64 V = bRepeated ? EntyRef->GetRepeatedUInt64(EntryMsg, Fd, Index) : EntyRef->GetUInt64(EntryMsg, Fd);
             	Int64P2->SetPropertyValue(Dest,static_cast<int64>(V));
                 return true;
             }
@@ -757,7 +757,7 @@ bool ULinkProtobufFunctionLibrary::FillProtoMessageIntoUStruct(const google::pro
             if (!EnsureIndex(Index)) return false;
             if (FFloatProperty* FloatP = CastField<FFloatProperty>(Prop))
             {
-                float V = bRepeated ? F_Ref->GetRepeatedFloat(EntryMsg, Fd, Index) : F_Ref->GetFloat(EntryMsg, Fd);
+                float V = bRepeated ? EntyRef->GetRepeatedFloat(EntryMsg, Fd, Index) : EntyRef->GetFloat(EntryMsg, Fd);
             	FloatP->SetPropertyValue(Dest,V);
                 return true;
             }
@@ -766,13 +766,13 @@ bool ULinkProtobufFunctionLibrary::FillProtoMessageIntoUStruct(const google::pro
             if (!EnsureIndex(Index)) return false;
             if (FDoubleProperty* DoubleP = CastField<FDoubleProperty>(Prop))
             {
-                double V = bRepeated ? F_Ref->GetRepeatedDouble(EntryMsg, Fd, Index) : F_Ref->GetDouble(EntryMsg, Fd);
+                double V = bRepeated ? EntyRef->GetRepeatedDouble(EntryMsg, Fd, Index) : EntyRef->GetDouble(EntryMsg, Fd);
             	DoubleP->SetPropertyValue(Dest,V);
                 return true;
             }
             if (FFloatProperty* FloatP = CastField<FFloatProperty>(Prop))
             {
-                double V = bRepeated ? F_Ref->GetRepeatedDouble(EntryMsg, Fd, Index) : F_Ref->GetDouble(EntryMsg, Fd);
+                double V = bRepeated ? EntyRef->GetRepeatedDouble(EntryMsg, Fd, Index) : EntyRef->GetDouble(EntryMsg, Fd);
             	FloatP->SetPropertyValue(Dest,V);
                 return true;
             }
@@ -781,7 +781,7 @@ bool ULinkProtobufFunctionLibrary::FillProtoMessageIntoUStruct(const google::pro
             if (!EnsureIndex(Index)) return false;
             if (FBoolProperty* BoolP = CastField<FBoolProperty>(Prop))
             {
-                bool V = bRepeated ? F_Ref->GetRepeatedBool(EntryMsg, Fd, Index) : F_Ref->GetBool(EntryMsg, Fd);
+                bool V = bRepeated ? EntyRef->GetRepeatedBool(EntryMsg, Fd, Index) : EntyRef->GetBool(EntryMsg, Fd);
                 BoolP->SetPropertyValue(Dest, V);
                 return true;
             }
