@@ -103,17 +103,6 @@ In Blueprint: Use "**Convert Struct To Proto Binary Bytes**" and "**Convert Prot
 In Cpp: Use `ULinkProtobufFunctionLibrary::ConvertStructToBinaryProtoBytes` and `ULinkProtobufFunctionLibrary::ConvertProtoBinaryBytesToStruct` functions.
 10. To Add new `UStruct` you want to use, repeat steps 5-8.
 
-# Changelog
-
-## v1.1
-- Fix: Ensure `protoc.exe` is executed on Windows (handle paths and extensions correctly).
-- Add: JSON debug utility for logging and inspecting generated data.
-- New Support For UE5.4 + UE5.5
-- Note: Renaming behavior avoids overwriting existing files and improves compatibility with Epic review.
-
-## v1.0
-- Initial release.
-
 ## Contributing
 
 Contributions are welcome. You can:
