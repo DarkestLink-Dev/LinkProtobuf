@@ -1,7 +1,7 @@
 {
 	"FileVersion": 3,
 	"Version": 1,
-	"VersionName": "1.1",
+	"VersionName": "1.2",
 	"FriendlyName": "LinkProtobuf",
 	"Description": "Plugin for Unreal Engine to use Google Protobuf in both Blueprints and C++.",
 	"Category": "Binary Protocol",
