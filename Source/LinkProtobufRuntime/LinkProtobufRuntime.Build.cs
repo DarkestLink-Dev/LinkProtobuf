@@ -11,6 +11,8 @@ public class LinkProtobufRuntime : ModuleRules
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 		PublicDefinitions.Add("_CRT_SECURE_NO_WARNINGS");
+		PublicDefinitions.Add("GOOGLE_PROTOBUF_NO_RTTI=1");
+		PublicDefinitions.Add("GOOGLE_PROTOBUF_INTERNAL_DONATE_STEAL_INLINE=1");
 		PublicDependencyModuleNames.AddRange(
 			new string[]
 			{
@@ -34,7 +36,7 @@ public class LinkProtobufRuntime : ModuleRules
 		#elif UE_5_5_OR_LATER
 		ShadowVariableWarningLevel = WarningLevel.Off;
 		UndefinedIdentifierWarningLevel = WarningLevel.Off;
-		#elif  UE_5_4_OR_LATER
+		#elif  UE_5_0_OR_LATER
 		ShadowVariableWarningLevel = WarningLevel.Off;
 		bEnableUndefinedIdentifierWarnings = false;
 		#else
