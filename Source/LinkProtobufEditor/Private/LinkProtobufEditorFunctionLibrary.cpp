@@ -340,46 +340,49 @@ void ULinkProtobufEditorFunctionLibrary::GenerateProtoCppFile()
     }
 
 
+    // C++
     FString ProtoFilePath = GetProtoFilePath();
-    FString ProtocCommand = FString::Printf(TEXT("%s Protoc --proto_path=\"%s\" --cpp_out=\"%s\" \"%s\""),
-        *CommandPrefix,
-        //*ProtocPath,
+
+    FString ProtocArgs = FString::Printf(TEXT("--proto_path=\"%s\" --cpp_out=\"%s\" \"%s\""),
         *ULinkProtobufEditorSettings::Get()->GetDefaultProtobufGenPath(),
         *ULinkProtobufEditorSettings::Get()->GetDefaultProtobufGenPath(),
         *ProtoFilePath);
 
-    FString CapturedPlatformBash = PlatformBash;
-    FString CapturedProtocCommand = ProtocCommand;
-    FString CapturedWorkingDir = FPaths::GetPath(ProtocPath);
+    FString CapturedPlatformBash = ProtocPath;
+    FString CapturedProtocCommand = ProtocArgs;
+    FString CapturedWorkingDir = FPaths::GetPath(ProtoFilePath);
 
-    TFuture<void> Task=Async(EAsyncExecution::ThreadPool, [CapturedPlatformBash, CapturedProtocCommand, CapturedWorkingDir]() {
+    TFuture<void> Task = Async(EAsyncExecution::ThreadPool, [CapturedPlatformBash, CapturedProtocCommand, CapturedWorkingDir]() {
         int32 ReturnCode = -1;
         FString StdOut;
         FString StdErr;
 #if ENGINE_MAJOR_VERSION>=5
-    	//FPlatformProcess::CreateProc(*CapturedPlatformBash, *CapturedProtocCommand, true, false, false, nullptr, 0, *CapturedWorkingDir, nullptr);
-    	FPlatformProcess::ExecProcess(*CapturedPlatformBash, *CapturedProtocCommand, &ReturnCode, &StdOut, &StdErr, *CapturedWorkingDir,true);
+        FPlatformProcess::ExecProcess(*CapturedPlatformBash, *CapturedProtocCommand, &ReturnCode, &StdOut, &StdErr, *CapturedWorkingDir, true);
 #else
-    	FPlatformProcess::ExecProcess(*CapturedPlatformBash, *CapturedProtocCommand, &ReturnCode, &StdOut, &StdErr, *CapturedWorkingDir);
+        FPlatformProcess::ExecProcess(*CapturedPlatformBash, *CapturedProtocCommand, &ReturnCode, &StdOut, &StdErr, *CapturedWorkingDir);
 #endif
         AsyncTask(ENamedThreads::GameThread, [ReturnCode, StdOut, StdErr, CapturedProtocCommand]() {
-        	bool bSuccessLocal = (ReturnCode==1);
+            bool bSuccessLocal = (ReturnCode == 0);
             UE_LOG(LogProtoEditor, Display, TEXT("Generate Protocpp (async): %s, Command: %s"), bSuccessLocal ? TEXT("Success") : TEXT("Failed"), *CapturedProtocCommand);
             UE_LOG(LogProtoEditor, Display, TEXT("Return code: %d"), ReturnCode);
-            UE_LOG(LogProtoEditor, Display, TEXT("Command output: %s"), *StdOut);
+            UE_LOG(LogProtoEditor, Display, TEXT("Command stdout: %s"), *StdOut);
+            if (!StdErr.IsEmpty())
+            {
+                UE_LOG(LogProtoEditor, Error, TEXT("Command stderr: %s"), *StdErr);
+            }
 #if WITH_EDITOR
-        	const FText Msg = bSuccessLocal
-			? FText::FromString(TEXT("ProtoCpp Generate Success. Please recompile your project from IDE."))
-			: FText::FromString(TEXT("ProtoCpp Generate Failed. Check the logs for details."));
+            const FText Msg = bSuccessLocal
+                ? FText::FromString(TEXT("ProtoCpp Generate Success. Please recompile your project from IDE."))
+                : FText::FromString(TEXT("ProtoCpp Generate Failed. Check the logs for details.\nError :\n") + StdErr);
             FNotificationInfo Info(Msg);
-			Info.ExpireDuration = 10.0f;
-			Info.bFireAndForget = true;
-			FSlateNotificationManager::Get().AddNotification(Info);
-        	//RebuildThisPlugin();
+            Info.ExpireDuration = 10.0f;
+            Info.bFireAndForget = true;
+            FSlateNotificationManager::Get().AddNotification(Info);
 #endif
-        	return;
+            return;
         });
     });
+
 
 }
 
