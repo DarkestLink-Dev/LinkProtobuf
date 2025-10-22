@@ -31,8 +31,12 @@
 #ifndef GOOGLE_PROTOBUF_MAP_FIELD_INL_H__
 #define GOOGLE_PROTOBUF_MAP_FIELD_INL_H__
 
-#include <memory>
+#ifdef _MSC_VER
+#pragma warning(disable: 4800)
+#pragma warning(disable: 4946)
+#endif
 
+#include <memory>
 #include <google/protobuf/stubs/casts.h>
 #include <google/protobuf/map.h>
 #include <google/protobuf/map_field.h>

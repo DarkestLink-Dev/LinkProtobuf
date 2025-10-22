@@ -39,8 +39,8 @@ This plugin is compatible with the following Unreal Engine versions:
 | Engine Version | Support Status            |
 |:---------------|:--------------------------|
 | UE 5.6         | ✓ Fully Supported         |
-| UE 5.5         | ✓ Fully Supported         |
-| UE 5.4         | ✓ Fully Supported         |
+| UE 5.5         | - Planned                 |
+| UE 5.4         | - Planned                 |
 | UE 5.3         | - Planned                 |
 | UE 5.2         | - Planned                 |
 | UE 5.1         | - Planned                 |
@@ -103,7 +103,7 @@ In Blueprint: Use "**Convert Struct To Proto Binary Bytes**" and "**Convert Prot
 In Cpp: Use `ULinkProtobufFunctionLibrary::ConvertStructToBinaryProtoBytes` and `ULinkProtobufFunctionLibrary::ConvertProtoBinaryBytesToStruct` functions.
 10. To Add new `UStruct` you want to use, repeat steps 5-8.
 
-## Changelog
+# Changelog
 
 ## v1.1
 - Fix: Ensure `protoc.exe` is executed on Windows (handle paths and extensions correctly).

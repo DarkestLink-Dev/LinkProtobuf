@@ -31,6 +31,11 @@
 #ifndef GOOGLE_PROTOBUF_EXTENSION_SET_INL_H__
 #define GOOGLE_PROTOBUF_EXTENSION_SET_INL_H__
 
+#ifdef _MSC_VER
+#pragma warning(disable: 4800)
+#pragma warning(disable 4946)
+#endif
+
 #include <google/protobuf/extension_set.h>
 #include <google/protobuf/metadata_lite.h>
 #include <google/protobuf/parse_context.h>
