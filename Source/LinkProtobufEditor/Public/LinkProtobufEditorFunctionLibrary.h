@@ -25,19 +25,19 @@ USTRUCT(BlueprintType)
 struct FProtoFieldKey
 {
 	GENERATED_BODY()
-	UPROPERTY(EditDefaultsOnly,BlueprintReadWrite,Category = "LinkProtobuf|Editor")
-	FString FieldName=TEXT("");
-	UPROPERTY(EditDefaultsOnly,BlueprintReadOnly,Category = "LinkProtobuf|Editor")
-	FString UIDName=TEXT("");
-	UPROPERTY(EditDefaultsOnly,BlueprintReadWrite,Category = "LinkProtobuf|Editor")
-	bool bRepeated=false;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "LinkProtobuf|Editor")
+	FString FieldName = TEXT("");
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "LinkProtobuf|Editor")
+	FString UIDName = TEXT("");
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "LinkProtobuf|Editor")
+	bool bRepeated = false;
 
-	UPROPERTY(EditDefaultsOnly,BlueprintReadWrite,Category = "LinkProtobuf|Editor")
-	EUnrealType UnrealType=EUnrealType::Normal;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "LinkProtobuf|Editor")
+	EUnrealType UnrealType = EUnrealType::Normal;
 
-	FProperty* ValueProperty;
+	FProperty *ValueProperty;
 
-	bool operator==(const FProtoFieldKey& Other) const
+	bool operator==(const FProtoFieldKey &Other) const
 	{
 		return FieldName == Other.FieldName;
 	}
@@ -48,10 +48,11 @@ struct FProtoStruct
 {
 	GENERATED_BODY()
 
-	UPROPERTY(EditDefaultsOnly,BlueprintReadWrite,Category = "LinkProtobuf|PreviewData")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "LinkProtobuf|PreviewData")
 	TArray<FProtoFieldKey> ProtoData;
 };
-FORCEINLINE uint32 GetTypeHash(const FProtoFieldKey& Key)
+
+FORCEINLINE uint32 GetTypeHash(const FProtoFieldKey &Key)
 {
 	return HashCombine(HashCombine(GetTypeHash(Key.FieldName), GetTypeHash(Key.UIDName)), GetTypeHash(Key.bRepeated));
 }
@@ -60,16 +61,17 @@ UCLASS()
 class LINKPROTOBUFEDITOR_API ULinkProtobufEditorFunctionLibrary : public UBlueprintFunctionLibrary
 {
 	GENERATED_BODY()
+
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LinkProtobuf|Editor")
 	FProtoStruct UserProtoData;
 
 	UFUNCTION()
-	static bool GenerateProtoFile(TArray<UScriptStruct*> TargetStructs);
+	static bool GenerateProtoFile(TArray<UScriptStruct *> TargetStructs);
 
-	static void GenerateProtoMessageFromUStruct(UScriptStruct* TargetStruct,FString& RefProtoMessage);
+	static void GenerateProtoMessageFromUStruct(UScriptStruct *TargetStruct, FString &RefProtoMessage);
 
-	static void GenerateProtoMessageFromUStructArray(TArray<UScriptStruct*> TargetStructs, FString& MainProtoMessage);
+	static void GenerateProtoMessageFromUStructArray(TArray<UScriptStruct *> TargetStructs, FString &MainProtoMessage);
 
 	static void GenerateProtoCppFile();
 
@@ -81,12 +83,12 @@ public:
 
 	static bool RebuildThisPlugin();
 
-	static bool AppendExtensionForFile(const FString& FilePath, const FString& Extension);
+	static bool AppendExtensionForFile(const FString &FilePath, const FString &Extension);
+
 protected:
-	UPROPERTY(BlueprintReadWrite,EditAnywhere, Category = "LinkProtobuf|Editor")
-	TArray<UScriptStruct*> ProtoBoundStructs;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "LinkProtobuf|Editor")
+	TArray<TObjectPtr<UScriptStruct>> ProtoBoundStructs;
 	static TArray<FString> AssociatedStructs;
 	static TArray<FString> AssociatedEnums;
 
 };
-
