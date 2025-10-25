@@ -1,7 +1,7 @@
 ![logo](./Resources/Icon128.png)
 <p align="right">Language: <b>English</b> | <a href="./README.zh-CN.md">中文</a></p>
 
-## LinkProtobuf
+# LinkProtobuf
 
 A Unreal Engine plugin that makes using Google Protocol Buffers (protobuf) in UnrealEngine Projects simple and consistent across platforms.
 
