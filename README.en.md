@@ -7,6 +7,7 @@ A Unreal Engine plugin that makes using Google Protocol Buffers (protobuf) in Un
 
 ## Overview
 
+- Core capability: One-click convert Unreal Engine UStructs to Proto message schemas, and perform real-time bidirectional conversion via Unreal Engine reflection and protobuf reflection — no per-message converter functions needed.
 - Lightweight integration of protobuf into Unreal Engine Runtime.
 - C++ APIs and Blueprint Functions ready for UnrealEngine.
 
