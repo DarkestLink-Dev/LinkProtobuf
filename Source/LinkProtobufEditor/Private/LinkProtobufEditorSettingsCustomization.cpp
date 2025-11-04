@@ -141,9 +141,9 @@ FReply FLinkProtobufEditorSettingsCustomization::OnButtonGenerateProtoFromSettin
 		return FReply::Handled();
 	}
 	TArray<UScriptStruct*> StructsToProcess;
-	const TArray<TSoftObjectPtr<UUserDefinedStruct>>& SettingStructs = Settings->UserDefinedStructsForProtobuf;
+	const TArray<TSoftObjectPtr<UScriptStruct>>& SettingStructs = Settings->UserDefinedStructsForProtobuf;
 	TArray<FString>MissingStructs;
-	for (const TSoftObjectPtr<UUserDefinedStruct>& StructPtr : SettingStructs)
+	for (const TSoftObjectPtr<UScriptStruct>& StructPtr : SettingStructs)
 	{
 		if (StructPtr.IsValid())
 		{
