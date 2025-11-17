@@ -340,27 +340,68 @@ void ULinkProtobufEditorFunctionLibrary::GenerateProtoCppFile()
     }
 
 
-    // C++
-    FString ProtoFilePath = GetProtoFilePath();
+    // ✅ 修改：使用绝对路径避免路径解析问题，保持原有目录结构（Public/ProtoSource）
+    FString GenPath = ULinkProtobufEditorSettings::Get()->GetDefaultProtobufGenPath();
+    FString AbsGenPath = FPaths::ConvertRelativePathToFull(GenPath);
+    FString ProtoFilePath = FPaths::ConvertRelativePathToFull(GetProtoFilePath());
+    FString AbsProtocPath = FPaths::ConvertRelativePathToFull(ProtocPath);
 
+    // 统一为平台路径风格（Windows 使用反斜杠，避免 0x7b 错误）
+    FPaths::MakePlatformFilename(AbsGenPath);
+    FPaths::MakePlatformFilename(ProtoFilePath);
+    FPaths::MakePlatformFilename(AbsProtocPath);
+
+    // 确保目录存在（跨平台）
+    IFileManager::Get().MakeDirectory(*AbsGenPath, true);
+
+    // 构造 protoc 参数 - 使用绝对路径
     FString ProtocArgs = FString::Printf(TEXT("--proto_path=\"%s\" --cpp_out=\"%s\" \"%s\""),
-        *ULinkProtobufEditorSettings::Get()->GetDefaultProtobufGenPath(),
-        *ULinkProtobufEditorSettings::Get()->GetDefaultProtobufGenPath(),
+        *AbsGenPath,
+        *AbsGenPath,
         *ProtoFilePath);
 
-    FString CapturedPlatformBash = ProtocPath;
+    FString CapturedPlatformBash = AbsProtocPath;
     FString CapturedProtocCommand = ProtocArgs;
-    FString CapturedWorkingDir = FPaths::GetPath(ProtoFilePath);
+    FString CapturedWorkingDir = TEXT("");  // 不依赖工作目录，传 nullptr 给 ExecProcess
+    FString CapturedGenPath = AbsGenPath;  // 传递生成路径用于后续重命名
+    FString CapturedProtoFileName = ULinkProtobufEditorSettings::Get()->ProtoFileName;  // 传递文件名
+    // ✅ 修改结束
 
-    TFuture<void> Task = Async(EAsyncExecution::ThreadPool, [CapturedPlatformBash, CapturedProtocCommand, CapturedWorkingDir]() {
+    TFuture<void> Task = Async(EAsyncExecution::ThreadPool, [CapturedPlatformBash, CapturedProtocCommand, CapturedGenPath, CapturedProtoFileName]() {
         int32 ReturnCode = -1;
         FString StdOut;
         FString StdErr;
 #if ENGINE_MAJOR_VERSION>=5
-        FPlatformProcess::ExecProcess(*CapturedPlatformBash, *CapturedProtocCommand, &ReturnCode, &StdOut, &StdErr, *CapturedWorkingDir, true);
+        FPlatformProcess::ExecProcess(*CapturedPlatformBash, *CapturedProtocCommand, &ReturnCode, &StdOut, &StdErr, nullptr, true);
 #else
-        FPlatformProcess::ExecProcess(*CapturedPlatformBash, *CapturedProtocCommand, &ReturnCode, &StdOut, &StdErr, *CapturedWorkingDir);
+        FPlatformProcess::ExecProcess(*CapturedPlatformBash, *CapturedProtocCommand, &ReturnCode, &StdOut, &StdErr, nullptr);
 #endif
+        
+        // ✅ 新增：如果 protoc 成功，自动重命名 .pb.cc → .pb.cpp
+        if (ReturnCode == 0)
+        {
+            FString PbCcPath = FPaths::Combine(CapturedGenPath, CapturedProtoFileName + TEXT(".pb.cc"));
+            FString PbCppPath = FPaths::Combine(CapturedGenPath, CapturedProtoFileName + TEXT(".pb.cpp"));
+            
+            if (IFileManager::Get().FileExists(*PbCcPath))
+            {
+                // 如果 .pb.cpp 已存在，先删除
+                if (IFileManager::Get().FileExists(*PbCppPath))
+                {
+                    IFileManager::Get().Delete(*PbCppPath, false, true);
+                }
+                // 重命名 .cc → .cpp
+                if (IFileManager::Get().Move(*PbCppPath, *PbCcPath, true, true))
+                {
+                    UE_LOG(LogProtoEditor, Display, TEXT("Renamed %s to %s for UBT compilation"), *PbCcPath, *PbCppPath);
+                }
+                else
+                {
+                    UE_LOG(LogProtoEditor, Warning, TEXT("Failed to rename %s to .cpp"), *PbCcPath);
+                }
+            }
+        }
+        
         AsyncTask(ENamedThreads::GameThread, [ReturnCode, StdOut, StdErr, CapturedProtocCommand]() {
             bool bSuccessLocal = (ReturnCode == 0);
             UE_LOG(LogProtoEditor, Display, TEXT("Generate Protocpp (async): %s, Command: %s"), bSuccessLocal ? TEXT("Success") : TEXT("Failed"), *CapturedProtocCommand);
@@ -370,6 +411,7 @@ void ULinkProtobufEditorFunctionLibrary::GenerateProtoCppFile()
             {
                 UE_LOG(LogProtoEditor, Error, TEXT("Command stderr: %s"), *StdErr);
             }
+            
 #if WITH_EDITOR
             const FText Msg = bSuccessLocal
                 ? FText::FromString(TEXT("ProtoCpp Generate Success. Please recompile your project from IDE."))
@@ -382,8 +424,6 @@ void ULinkProtobufEditorFunctionLibrary::GenerateProtoCppFile()
             return;
         });
     });
-
-
 }
 
 FString ULinkProtobufEditorFunctionLibrary::GetProtoFilePath()
