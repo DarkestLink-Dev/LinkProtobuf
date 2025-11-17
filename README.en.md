@@ -42,14 +42,15 @@ This plugin is compatible with the following Unreal Engine versions:
 
 | Engine Version | Support Status            |
 |:---------------|:--------------------------|
+| UE 5.7         | ✓ Fully Supported         |
 | UE 5.6         | ✓ Fully Supported         |
 | UE 5.5         | ✓ Fully Supported         |
 | UE 5.4         | ✓ Fully Supported         |
 | UE 5.3         | ✓ Fully Supported         |
 | UE 5.2         | ✓ Fully Supported         |
-| UE 5.1         | - Planned                 |
-| UE 5.0         | - Planned                 |
-| UE 4.27 or Older       | ⚠️ Planned Limited Support |
+| UE 5.1         | ✓ Fully Supported         |
+| UE 5.0         | ✓ Fully Supported         |
+| UE 4.27        | ✓ Fully Supported         |
 
 
 ## Supported Types (Proto <-> UStruct)
