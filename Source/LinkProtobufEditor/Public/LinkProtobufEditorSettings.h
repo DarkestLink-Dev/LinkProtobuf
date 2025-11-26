@@ -6,7 +6,7 @@
 #include "UObject/Object.h"
 #include "LinkProtobufEditorSettings.generated.h"
 
-class UUserDefinedStruct;
+class UScriptStruct;
 
 UCLASS(config = EditorPerProjectUserSettings, defaultconfig)
 class LINKPROTOBUFEDITOR_API ULinkProtobufEditorSettings : public UObject
@@ -27,7 +27,7 @@ public:
 	FString ProtobufGeneratePath;
 	/* Path to the protoc executable */
 	FString ProtocExecutePath;
-	//Add Your DefinedStruct here to generate .proto file
-	UPROPERTY(config, EditAnywhere, Category = "Link Protobuf User Settings", meta=(AllowedClasses="/Script/Engine.UserDefinedStruct"))
-	TArray<TSoftObjectPtr<UUserDefinedStruct>> UserDefinedStructsForProtobuf;
+	//Add Your DefinedStruct here to generate .proto file (supports both Blueprint and C++ structs)
+	UPROPERTY(config, EditAnywhere, Category = "Link Protobuf User Settings", meta=(AllowedClasses="/Script/CoreUObject.ScriptStruct"))
+	TArray<TSoftObjectPtr<UScriptStruct>> UserDefinedStructsForProtobuf;
 };

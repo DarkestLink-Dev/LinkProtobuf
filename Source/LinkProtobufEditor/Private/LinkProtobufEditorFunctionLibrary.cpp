@@ -284,14 +284,11 @@ void ULinkProtobufEditorFunctionLibrary::GenerateProtoMessageFromUStructArray(TA
 void ULinkProtobufEditorFunctionLibrary::GenerateProtoCppFile()
 {
     FString PlatformBash;
-    FString CommandPrefix;
 #if PLATFORM_WINDOWS
     PlatformBash = FPlatformMisc::GetEnvironmentVariable(TEXT("ComSpec"));
-    CommandPrefix = TEXT("/C");
 #elif PLATFORM_LINUX || PLATFORM_MAC
     // Planned to support in the future
     PlatformBash = TEXT("/bin/bash");
-    CommandPrefix = TEXT("-c");
 #else
 #if WITH_EDITOR
     FText Msg = LOCTEXT("UnsupportedPlatformContent", "The current platform is not supported for protoc execution.");
@@ -315,16 +312,27 @@ void ULinkProtobufEditorFunctionLibrary::GenerateProtoCppFile()
     }
 
     FString ProtocPath = ULinkProtobufEditorSettings::Get()->GetDefaultProtocExecPath();
-	const FString CleanProtocPath = FPaths::Combine(FPaths::GetPath(ProtocPath), FPaths::GetBaseFilename(ProtocPath));
+    FString ProtocDir = FPaths::GetPath(ProtocPath);
+    FString ProtocBase = FPaths::GetBaseFilename(ProtocPath);
+    const FString CleanProtocPath = FPaths::Combine(ProtocDir, ProtocBase);
 
 #if PLATFORM_WINDOWS
-	AppendExtensionForFile(CleanProtocPath, TEXT("exe"));
+    // Ensure protoc has a .exe extension on Windows. Try to rename "<dir>/protoc" -> "<dir>/protoc.exe" if necessary.
+    if (AppendExtensionForFile(CleanProtocPath, TEXT("exe")))
+    {
+        ProtocPath = CleanProtocPath + TEXT(".exe");
+    }
+    else if (FPaths::FileExists(CleanProtocPath + TEXT(".exe")))
+    {
+        ProtocPath = CleanProtocPath + TEXT(".exe");
+    }
 #endif
+
     if (!FPaths::FileExists(ProtocPath))
     {
-    	FText Msg = FText::Format(LOCTEXT("ProtocExeExtensionContent", "The protoc.exe not found,Please manual download it from Document pages to the path: {0}."), FText::FromString(ProtocPath));
-    	FMessageDialog::Open(EAppMsgType::Ok, Msg);
-    	return;
+        FText Msg = FText::Format(LOCTEXT("ProtocExeExtensionContent", "The protoc executable was not found. Please manually place protoc (protoc.exe on Windows) at: {0}."), FText::FromString(ProtocPath));
+        FMessageDialog::Open(EAppMsgType::Ok, Msg);
+        return;
     }
 
     // Verify the protoc executable exists
@@ -340,27 +348,39 @@ void ULinkProtobufEditorFunctionLibrary::GenerateProtoCppFile()
     }
 
 
-    // C++
-    FString ProtoFilePath = GetProtoFilePath();
+    // Use absolute paths to avoid path resolution issues, maintain original directory structure (Public/ProtoSource)
+    FString GenPath = ULinkProtobufEditorSettings::Get()->GetDefaultProtobufGenPath();
+    FString AbsGenPath = FPaths::ConvertRelativePathToFull(GenPath);
+    FString ProtoFilePath = FPaths::ConvertRelativePathToFull(GetProtoFilePath());
+    FString AbsProtocPath = FPaths::ConvertRelativePathToFull(ProtocPath);
 
+    // Unified platform path style (Windows uses backslashes, avoid 0x7b error)
+    FPaths::MakePlatformFilename(AbsGenPath);
+    FPaths::MakePlatformFilename(ProtoFilePath);
+    FPaths::MakePlatformFilename(AbsProtocPath);
+
+    // Ensure the directory exists (cross-platform)
+    IFileManager::Get().MakeDirectory(*AbsGenPath, true);
+
+    // Construct protoc arguments - use absolute paths
     FString ProtocArgs = FString::Printf(TEXT("--proto_path=\"%s\" --cpp_out=\"%s\" \"%s\""),
-        *ULinkProtobufEditorSettings::Get()->GetDefaultProtobufGenPath(),
-        *ULinkProtobufEditorSettings::Get()->GetDefaultProtobufGenPath(),
+        *AbsGenPath,
+        *AbsGenPath,
         *ProtoFilePath);
 
-    FString CapturedPlatformBash = ProtocPath;
+    FString CapturedPlatformBash = AbsProtocPath;
     FString CapturedProtocCommand = ProtocArgs;
-    FString CapturedWorkingDir = FPaths::GetPath(ProtoFilePath);
 
-    TFuture<void> Task = Async(EAsyncExecution::ThreadPool, [CapturedPlatformBash, CapturedProtocCommand, CapturedWorkingDir]() {
+    TFuture<void> Task = Async(EAsyncExecution::ThreadPool, [CapturedPlatformBash, CapturedProtocCommand]() {
         int32 ReturnCode = -1;
         FString StdOut;
         FString StdErr;
 #if ENGINE_MAJOR_VERSION>=5
-        FPlatformProcess::ExecProcess(*CapturedPlatformBash, *CapturedProtocCommand, &ReturnCode, &StdOut, &StdErr, *CapturedWorkingDir, true);
+        FPlatformProcess::ExecProcess(*CapturedPlatformBash, *CapturedProtocCommand, &ReturnCode, &StdOut, &StdErr, nullptr, true);
 #else
-        FPlatformProcess::ExecProcess(*CapturedPlatformBash, *CapturedProtocCommand, &ReturnCode, &StdOut, &StdErr, *CapturedWorkingDir);
+        FPlatformProcess::ExecProcess(*CapturedPlatformBash, *CapturedProtocCommand, &ReturnCode, &StdOut, &StdErr, nullptr);
 #endif
+
         AsyncTask(ENamedThreads::GameThread, [ReturnCode, StdOut, StdErr, CapturedProtocCommand]() {
             bool bSuccessLocal = (ReturnCode == 0);
             UE_LOG(LogProtoEditor, Display, TEXT("Generate Protocpp (async): %s, Command: %s"), bSuccessLocal ? TEXT("Success") : TEXT("Failed"), *CapturedProtocCommand);
@@ -370,6 +390,7 @@ void ULinkProtobufEditorFunctionLibrary::GenerateProtoCppFile()
             {
                 UE_LOG(LogProtoEditor, Error, TEXT("Command stderr: %s"), *StdErr);
             }
+            
 #if WITH_EDITOR
             const FText Msg = bSuccessLocal
                 ? FText::FromString(TEXT("ProtoCpp Generate Success. Please recompile your project from IDE."))
@@ -382,8 +403,6 @@ void ULinkProtobufEditorFunctionLibrary::GenerateProtoCppFile()
             return;
         });
     });
-
-
 }
 
 FString ULinkProtobufEditorFunctionLibrary::GetProtoFilePath()
@@ -566,3 +585,4 @@ bool ULinkProtobufEditorFunctionLibrary::AppendExtensionForFile(const FString& F
 
 
 #undef LOCTEXT_NAMESPACE
+
