@@ -10,6 +10,7 @@ public class LinkProtobufRuntime : ModuleRules
 	public LinkProtobufRuntime(ReadOnlyTargetRules Target) : base(Target)
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
+		var UseDLLWithEditor = true;
 		PublicDefinitions.Add("_CRT_SECURE_NO_WARNINGS");
 		PublicDefinitions.Add("GOOGLE_PROTOBUF_NO_RTTI=1");
 		PublicDefinitions.Add("GOOGLE_PROTOBUF_INTERNAL_DONATE_STEAL_INLINE=1");
@@ -67,10 +68,36 @@ public class LinkProtobufRuntime : ModuleRules
 			#if UE_5_3_OR_LATER
 	        if (Target.Architecture == UnrealArch.X64)
 	        {
-		        PublicAdditionalLibraries.AddRange(new string[]
+		        if (Target.bBuildEditor&&UseDLLWithEditor)
 		        {
-			        Path.Combine(Win64Protolib, "libprotobuf.lib"),
-		        });
+			        //Use DLLs in Editor
+			        PublicDefinitions.Add("PROTOBUF_USE_DLLS=1");
+			        string Win64ProtolibLink = Path.Combine(ThirdPartyDir, "Win64", "bin", "libprotobuf.lib");
+			        PublicAdditionalLibraries.Add(Win64ProtolibLink);
+			        string Win64ProtoDLL = Path.Combine(ThirdPartyDir, "Win64", "bin", "libprotobuf.dll");
+			        string Win64ProtocDLL = Path.Combine(ThirdPartyDir, "Win64", "bin", "libprotoc.dll");
+			        if (Target.ProjectFile != null)
+			        {
+				        string DestDLLPath = Path.Combine(Target.ProjectFile.Directory.ToString(), "Binaries", "Win64",
+					        "libprotobuf.dll");
+				        if (!File.Exists(DestDLLPath))
+				        {
+					        File.Copy(Win64ProtoDLL, DestDLLPath);
+				        }
+				        RuntimeDependencies.Add(DestDLLPath, Win64ProtoDLL);
+				        PublicDelayLoadDLLs.Add(DestDLLPath);
+
+			        }
+		        }
+		        else
+		        {
+			        PublicAdditionalLibraries.AddRange(new string[]
+			        {
+				        Path.Combine(Win64Protolib, "libprotobuf.lib"),
+				        Path.Combine(Win64Protolib, "libprotoc.lib"),
+			        });
+		        }
+
 	        }
             if (Target.Architecture == UnrealArch.Arm64)
             {
