@@ -10,7 +10,7 @@ public class LinkProtobufRuntime : ModuleRules
 	public LinkProtobufRuntime(ReadOnlyTargetRules Target) : base(Target)
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
-		var UseDLLWithEditor = true;
+
 		PublicDefinitions.Add("_CRT_SECURE_NO_WARNINGS");
 		PublicDefinitions.Add("GOOGLE_PROTOBUF_NO_RTTI=1");
 		PublicDefinitions.Add("GOOGLE_PROTOBUF_INTERNAL_DONATE_STEAL_INLINE=1");
@@ -68,7 +68,7 @@ public class LinkProtobufRuntime : ModuleRules
 			#if UE_5_3_OR_LATER
 	        if (Target.Architecture == UnrealArch.X64)
 	        {
-		        if (Target.bBuildEditor&&UseDLLWithEditor)
+		        if (Target.bBuildEditor)
 		        {
 			        //Use DLLs in Editor
 			        PublicDefinitions.Add("PROTOBUF_USE_DLLS=1");
@@ -85,8 +85,6 @@ public class LinkProtobufRuntime : ModuleRules
 					        File.Copy(Win64ProtoDLL, DestDLLPath);
 				        }
 				        RuntimeDependencies.Add(DestDLLPath, Win64ProtoDLL);
-				        PublicDelayLoadDLLs.Add(DestDLLPath);
-
 			        }
 		        }
 		        else

@@ -18,12 +18,11 @@ public:
 	FString GetDefaultProtobufGenPath() const;
 	FString GetDefaultProtocExecPath() const;
 	static const ULinkProtobufEditorSettings*Get() { return GetDefault<ULinkProtobufEditorSettings>(); }
+
 	UPROPERTY(Config, EditAnywhere, Category = "Link Protobuf Environment", meta=(ToolTip="Do not modify this value unless you are understand. Changing it may cause complie error."))
 	FString ProtoFileName=TEXT("User");
-	/*
-	 *Temporarily suspended
-	 *Must be in the ModuleDir that can be compiled with protobuf reflection, if set to other path only packaged version could find proto file descriptor Unreal Editor will not recognize.
-	 */
+
+	UPROPERTY(Config, EditAnywhere, Category = "Link Protobuf Environment", meta=(ToolTip="Do not modify this value unless you are understand. Changing it may cause complie error."))
 	FString ProtobufGeneratePath;
 	/* Path to the protoc executable */
 	FString ProtocExecutePath;
