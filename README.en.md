@@ -57,24 +57,24 @@ This plugin is compatible with the following Unreal Engine versions:
 The Proto-to-UStruct conversion supports the following:
 
 - UE base types (commonly used):
-	- bool, int8/int16/int32/int64, uint8/uint16/uint32/uint64
-	- float, double
-	- FString, FName, FText
-	- Nested UStructs
+  - bool, int8/int16/int32/int64, uint8/uint16/uint32/uint64
+  - float, double
+  - FString, FName, FText
+  - Nested UStructs
 - Containers:
-	- TArray<T> — mapped to protobuf repeated fields
-	- TSet<T> — protobuf has no native Set; serialized as repeated with uniqueness enforced during import/export
-	- TMap<TKey, TValue> — mapped to protobuf map with key restrictions (see below)
+  - TArray<T> — mapped to protobuf repeated fields
+  - TSet<T> — protobuf has no native Set; serialized as repeated with uniqueness enforced during import/export
+  - TMap<TKey, TValue> — mapped to protobuf map with key restrictions (see below)
 - Enums:
-	- All user-defined UENUMs and most engine-provided enums (serialized as integers)
+  - All user-defined UENUMs and most engine-provided enums (serialized as integers)
 
 Notes and limitations for containers:
 
 - Set: because protobuf doesn’t have a Set type, it is represented as a repeated field; uniqueness is maintained by the plugin when converting.
 - Map: protobuf map key types are restricted by the protobuf specification:
-	- Keys must be an integral scalar or string: one of int32/int64/uint32/uint64/sint32, or string.
-	- Keys cannot be floating-point (float/double), bytes, enums, messages/structs, arrays, or other complex types.
-	- If you need other key types, consider converting keys to string or wrapping data in a UStruct before serialization.
+  - Keys must be an integral scalar or string: one of int32/int64/uint32/uint64/sint32, or string.
+  - Keys cannot be floating-point (float/double), bytes, enums, messages/structs, arrays, or other complex types.
+  - If you need other key types, consider converting keys to string or wrapping data in a UStruct before serialization.
 
 Not supported:
 
@@ -86,8 +86,8 @@ Not supported:
 
 - A C++-based Unreal Engine project is required.
 - If your project is Blueprint-only, convert it to a C++ project via:
-	- In the editor, go to **File -> New C++ Class**, create an (empty) class, and let Unreal regenerate project files.
-	- Reopen the project in your IDE and build once so the C++ toolchain is set up.
+  - In the editor, go to **File -> New C++ Class**, create an (empty) class, and let Unreal regenerate project files.
+  - Reopen the project in your IDE and build once so the C++ toolchain is set up.
 - Plugin need to be installed in your project `Plugins` folder.
 **⚠️ IMPORTANT: If you install from FAB Marketplace, you MUST manually copy the plugin to your project's Plugins folder for it to work properly.**
 
