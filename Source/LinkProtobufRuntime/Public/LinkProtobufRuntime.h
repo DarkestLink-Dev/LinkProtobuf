@@ -19,7 +19,9 @@
 #include "Modules/ModuleManager.h"
 #include "LinkProtobufRuntime.generated.h"
 
-DECLARE_LOG_CATEGORY_EXTERN(LogProto, Log, All);
+// 只打印错误信息，避免刷屏
+// 如果需要调试，可以在编辑器 Output Log 窗口中临时修改 LogProto 的级别
+DECLARE_LOG_CATEGORY_EXTERN(LogProto, Error, All);
 
 
 UENUM(BlueprintType)

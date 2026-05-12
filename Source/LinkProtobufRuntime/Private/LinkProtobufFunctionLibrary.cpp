@@ -39,6 +39,69 @@ using Arena                = google::protobuf::Arena;
 using DescriptorPool       = google::protobuf::DescriptorPool;
 using MessageFactory       = google::protobuf::MessageFactory;
 
+namespace
+{
+const FieldDescriptor* FindFieldByUEPropertyName(const Descriptor* MessageDescriptor, const FProperty* Property)
+{
+	if (!MessageDescriptor || !Property)
+	{
+		return nullptr;
+	}
+
+	const FString PropertyName = Property->GetName().Replace(TEXT(" "), TEXT(""));
+	const std::string ExactFieldName = TCHAR_TO_UTF8(*PropertyName);
+	if (const FieldDescriptor* ExactField = MessageDescriptor->FindFieldByName(ExactFieldName))
+	{
+		return ExactField;
+	}
+
+	const FString AuthoredName = Property->GetAuthoredName().Replace(TEXT(" "), TEXT(""));
+	if (AuthoredName != PropertyName)
+	{
+		const std::string AuthoredFieldName = TCHAR_TO_UTF8(*AuthoredName);
+		if (const FieldDescriptor* AuthoredField = MessageDescriptor->FindFieldByName(AuthoredFieldName))
+		{
+			return AuthoredField;
+		}
+	}
+
+	const FieldDescriptor* CaseInsensitiveMatch = nullptr;
+	for (int32 FieldIndex = 0; FieldIndex < MessageDescriptor->field_count(); ++FieldIndex)
+	{
+		const FieldDescriptor* Candidate = MessageDescriptor->field(FieldIndex);
+		const FString CandidateName = FString(UTF8_TO_TCHAR(Candidate->name().c_str()));
+		const bool bMatchesPropertyName = CandidateName.Equals(PropertyName, ESearchCase::IgnoreCase);
+		const bool bMatchesAuthoredName = AuthoredName != PropertyName && CandidateName.Equals(AuthoredName, ESearchCase::IgnoreCase);
+		if (!bMatchesPropertyName && !bMatchesAuthoredName)
+		{
+			continue;
+		}
+
+		if (CaseInsensitiveMatch && CaseInsensitiveMatch != Candidate)
+		{
+			UE_LOG(LogProto, Warning, TEXT("Proto field case-insensitive match is ambiguous: message=%s property=%s authored=%s"),
+				*FString(UTF8_TO_TCHAR(MessageDescriptor->name().c_str())),
+				*PropertyName,
+				*AuthoredName);
+			return nullptr;
+		}
+
+		CaseInsensitiveMatch = Candidate;
+	}
+
+	if (CaseInsensitiveMatch)
+	{
+		UE_LOG(LogProto, Verbose, TEXT("Proto field case-insensitive fallback: message=%s property=%s authored=%s proto=%s"),
+			*FString(UTF8_TO_TCHAR(MessageDescriptor->name().c_str())),
+			*PropertyName,
+			*AuthoredName,
+			*FString(UTF8_TO_TCHAR(CaseInsensitiveMatch->name().c_str())));
+	}
+
+	return CaseInsensitiveMatch;
+}
+}
+
 
 
 bool ULinkProtobufFunctionLibrary::StructToBinaryProtoString(const int32& Struct, FString& OutProtoBinaryString)
@@ -190,7 +253,7 @@ template<typename SerializeFunc>
 bool ULinkProtobufFunctionLibrary::ConvertStructToProtoInternal(const UStruct* StructDefinition, const void* Struct, SerializeFunc&& Serialize)
 {
 	FString StructName = StructDefinition->GetName();
-	UE_LOG(LogProto, Log, TEXT("Proto Converting struct: %s"), *StructName);
+	// UE_LOG(LogProto, Log, TEXT("Proto Converting struct: %s"), *StructName);
 
 	std::string protoName = TCHAR_TO_UTF8(*StructName);
 	const Descriptor* descriptor = DescriptorPool::generated_pool()->FindMessageTypeByName(protoName);
@@ -243,8 +306,7 @@ bool ULinkProtobufFunctionLibrary::DeserializeStructToMessage(UScriptStruct* Str
     	FString PropertyName = GetPureNameOfProperty(Property);
         const void* ContainerPtr = Property->ContainerPtrToValuePtr<void>(Struct);
 
-        std::string FieldName = TCHAR_TO_UTF8(*PropertyName);
-        const FieldDescriptor* ItField = descriptor->FindFieldByName(FieldName);
+        const FieldDescriptor* ItField = FindFieldByUEPropertyName(descriptor, Property);
         if (!ItField)
         {
             UE_LOG(LogProto, Warning, TEXT("Proto DeserializeStructToMessage: field %s not found, skip"), *PropertyName);
@@ -484,15 +546,15 @@ bool ULinkProtobufFunctionLibrary::SerializeMessageToBinaryString(google::protob
     {
         UE_LOG(LogProto, Warning, TEXT("Proto Message for %s is not fully initialized, using partial serialization"), *StructName);
         bool bResult = message->SerializePartialToString(&OutProtoBinaryString);
-        UE_LOG(LogProto, Log, TEXT("Proto Partial serialization %s for %s"),
-               bResult ? TEXT("succeeded") : TEXT("failed"), *StructName);
+        // UE_LOG(LogProto, Log, TEXT("Proto Partial serialization %s for %s"),
+        //        bResult ? TEXT("succeeded") : TEXT("failed"), *StructName);
         return bResult;
     }
     else
     {
         bool bResult = message->SerializeToString(&OutProtoBinaryString);
-        UE_LOG(LogProto, Log, TEXT("Proto Full serialization %s for %s"),
-               bResult ? TEXT("succeeded") : TEXT("failed"), *StructName);
+        // UE_LOG(LogProto, Log, TEXT("Proto Full serialization %s for %s"),
+        //        bResult ? TEXT("succeeded") : TEXT("failed"), *StructName);
         return bResult;
     }
 }
@@ -851,8 +913,7 @@ bool ULinkProtobufFunctionLibrary::FillProtoMessageIntoUStruct(const google::pro
     {
         FProperty* Prop = *It;
         FString FieldNameUE = GetPureNameOfProperty(Prop).Replace(TEXT(" "), TEXT(""));
-        std::string ProtoFieldName = TCHAR_TO_UTF8(*FieldNameUE);
-        const FieldDescriptor* FD = F_Desc->FindFieldByName(ProtoFieldName);
+        const FieldDescriptor* FD = FindFieldByUEPropertyName(F_Desc, Prop);
         if (!FD)
         {
             UE_LOG(LogProto, Warning, TEXT("Proto WritePrimitiveToProperty: field %s not found in message %s, skip"), *FieldNameUE, *FString(UTF8_TO_TCHAR(F_Desc->name().c_str())));
@@ -967,7 +1028,7 @@ bool ULinkProtobufFunctionLibrary::SetFieldValue(google::protobuf::Message* targ
 #else
 	Property->ExportText_Direct(PropertyValue, containerPtr, nullptr, nullptr, PPF_None);
 #endif
-	UE_LOG(LogProto, Log, TEXT("Proto Setting Property %s field %s with value %s"), *Property->GetName(), *FString(UTF8_TO_TCHAR(field->name().c_str())), *PropertyValue);
+	// UE_LOG(LogProto, Log, TEXT("Proto Setting Property %s field %s with value %s"), *Property->GetName(), *FString(UTF8_TO_TCHAR(field->name().c_str())), *PropertyValue);
 	const google::protobuf::Reflection* fieldReflection = targetMsg->GetReflection();
 	const bool bIsRepeated = field->is_repeated();
 	if (!targetMsg || !field) {
@@ -980,10 +1041,10 @@ bool ULinkProtobufFunctionLibrary::SetFieldValue(google::protobuf::Message* targ
 		UE_LOG(LogProto, Error, TEXT("Proto SetFieldValue FAILED for Property %s field %s"), *Property->GetName(), *FString(UTF8_TO_TCHAR(field->name().c_str())));
 		return false;
 	}
-	if (bIsRepeated)
-	{
-		UE_LOG(LogProto, Log, TEXT("Proto Field %s is repeated"), *FString(UTF8_TO_TCHAR(field->name().c_str())));
-	}
+	// if (bIsRepeated)
+	// {
+	// 	UE_LOG(LogProto, Log, TEXT("Proto Field %s is repeated"), *FString(UTF8_TO_TCHAR(field->name().c_str())));
+	// }
 	// Handle basic types
 	bool bSetResult = false;
 	auto HandleBasicType = [&](auto ConvertFunc, auto SetFunc, auto AddFunc) {
@@ -1115,7 +1176,7 @@ bool ULinkProtobufFunctionLibrary::SetFieldValue(google::protobuf::Message* targ
 		return false;
 	}
 
-	UE_LOG(LogProto, Log, TEXT("Proto SetFieldValue SUCCESS for Property %s field %s value: %s"), *Property->GetName(), *FString(UTF8_TO_TCHAR(field->name().c_str())), *PropertyValue);
+	// UE_LOG(LogProto, Log, TEXT("Proto SetFieldValue SUCCESS for Property %s field %s value: %s"), *Property->GetName(), *FString(UTF8_TO_TCHAR(field->name().c_str())), *PropertyValue);
 
 	return bSetResult;
 }
@@ -1262,7 +1323,7 @@ FString ULinkProtobufFunctionLibrary::GetPureNameOfProperty(const FProperty* InP
 	{
 		return TEXT("InvalidProperty");
 	}
-	return  InProp->GetAuthoredName().Replace(TEXT(" "), TEXT(""));
+	return InProp->GetName().Replace(TEXT(" "), TEXT(""));
 }
 
 
