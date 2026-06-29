@@ -75,17 +75,7 @@ void ULinkProtobufEditorFunctionLibrary::GenerateProtoMessageFromUStruct(UScript
 				{
 					AssociatedEnums.Add(EnumName);
 					UE_LOG(LogProtoEditor, Log, TEXT("Generating proto enum for array element: %s"), *EnumName);
-					ExtraProtoMessage.Append(FString::Printf(TEXT("enum %s {\n"), *EnumName));
-					for (int32 i = 0; i < EnumProp->GetEnum()->NumEnums(); ++i)
-					{
-						FString EnumValueName = EnumProp->GetEnum()->GetNameStringByIndex(i);
-						if (!EnumValueName.EndsWith(TEXT("_MAX")))
-						{
-							int64 EnumValue = EnumProp->GetEnum()->GetValueByIndex(i);
-							ExtraProtoMessage.Append(FString::Printf(TEXT("  %s = %lld;\n"), *EnumValueName, EnumValue));
-						}
-					}
-					ExtraProtoMessage.Append(TEXT("}\n\n"));
+					ExtraProtoMessage.Append(GenerateProtoEnumBody(EnumProp->GetEnum()));
 				}
 			}
 
@@ -114,17 +104,7 @@ void ULinkProtobufEditorFunctionLibrary::GenerateProtoMessageFromUStruct(UScript
 				{
 					AssociatedEnums.Add(EnumName);
 					UE_LOG(LogProtoEditor, Log, TEXT("Generating proto enum for set element: %s"), *EnumName);
-					ExtraProtoMessage.Append(FString::Printf(TEXT("enum %s {\n"), *EnumName));
-					for (int32 i = 0; i < EnumProp->GetEnum()->NumEnums(); ++i)
-					{
-						FString EnumValueName = EnumProp->GetEnum()->GetNameStringByIndex(i);
-						if (!EnumValueName.EndsWith(TEXT("_MAX")))
-						{
-							int64 EnumValue = EnumProp->GetEnum()->GetValueByIndex(i);
-							ExtraProtoMessage.Append(FString::Printf(TEXT("  %s = %lld;\n"), *EnumValueName, EnumValue));
-						}
-					}
-					ExtraProtoMessage.Append(TEXT("}\n\n"));
+					ExtraProtoMessage.Append(GenerateProtoEnumBody(EnumProp->GetEnum()));
 				}
 			}
 			RefProtoMessage.Append(FString::Printf(TEXT("  repeated %s %s = %d;\n"), *FieldType, *ULinkProtobufFunctionLibrary::GetPureNameOfProperty(Property), FieldIndex));
@@ -156,17 +136,7 @@ void ULinkProtobufEditorFunctionLibrary::GenerateProtoMessageFromUStruct(UScript
 				{
 					AssociatedEnums.Add(EnumName);
 					UE_LOG(LogProtoEditor, Log, TEXT("Generating proto enum: %s"), *EnumName);
-					ExtraProtoMessage.Append(FString::Printf(TEXT("enum %s {\n"), *EnumName));
-					for (int32 i = 0; i < EnumProp->GetEnum()->NumEnums(); ++i)
-					{
-						FString EnumValueName = EnumProp->GetEnum()->GetNameStringByIndex(i);
-						if (!EnumValueName.EndsWith(TEXT("_MAX")))
-						{
-							int64 EnumValue = EnumProp->GetEnum()->GetValueByIndex(i);
-							ExtraProtoMessage.Append(FString::Printf(TEXT("  %s = %lld;\n"), *EnumValueName, EnumValue));
-						}
-					}
-					ExtraProtoMessage.Append(TEXT("}\n\n"));
+					ExtraProtoMessage.Append(GenerateProtoEnumBody(EnumProp->GetEnum()));
 				}
 			}
 
@@ -192,17 +162,7 @@ void ULinkProtobufEditorFunctionLibrary::GenerateProtoMessageFromUStruct(UScript
 				{
 					AssociatedEnums.Add(EnumName);
 					UE_LOG(LogProtoEditor, Log, TEXT("Generating proto enum: %s"), *EnumName);
-					ExtraProtoMessage.Append(FString::Printf(TEXT("enum %s {\n"), *EnumName));
-					for (int32 i = 0; i < EnumProp->GetEnum()->NumEnums(); ++i)
-					{
-						FString EnumValueName = EnumProp->GetEnum()->GetNameStringByIndex(i);
-						if (!EnumValueName.EndsWith(TEXT("_MAX")))
-						{
-							int64 EnumValue = EnumProp->GetEnum()->GetValueByIndex(i);
-							ExtraProtoMessage.Append(FString::Printf(TEXT("  %s = %lld;\n"), *EnumValueName, EnumValue));
-						}
-					}
-					ExtraProtoMessage.Append(TEXT("}\n\n"));
+					ExtraProtoMessage.Append(GenerateProtoEnumBody(EnumProp->GetEnum()));
 				}
 			}
 
@@ -229,17 +189,7 @@ void ULinkProtobufEditorFunctionLibrary::GenerateProtoMessageFromUStruct(UScript
 			{
 				AssociatedEnums.Add(EnumName);
 				UE_LOG(LogProtoEditor, Log, TEXT("Generating proto enum: %s"), *EnumName);
-				ExtraProtoMessage.Append(FString::Printf(TEXT("enum %s {\n"), *EnumName));
-				for (int32 i = 0; i < EnumProp->GetEnum()->NumEnums(); ++i)
-				{
-					FString EnumValueName = EnumProp->GetEnum()->GetNameStringByIndex(i);
-					if (!EnumValueName.EndsWith(TEXT("_MAX")))
-					{
-						int64 EnumValue = EnumProp->GetEnum()->GetValueByIndex(i);
-						ExtraProtoMessage.Append(FString::Printf(TEXT("  %s = %lld;\n"), *EnumValueName, EnumValue));
-					}
-				}
-				ExtraProtoMessage.Append(TEXT("}\n\n"));
+				ExtraProtoMessage.Append(GenerateProtoEnumBody(EnumProp->GetEnum()));
 			}
 		}
 		else
@@ -581,6 +531,53 @@ bool ULinkProtobufEditorFunctionLibrary::AppendExtensionForFile(const FString& F
 		return false;
 	}
 	return FM.Move(*DestPath, *FilePath, false, true);
+}
+
+FString ULinkProtobufEditorFunctionLibrary::GenerateProtoEnumBody(const UEnum* InEnum)
+{
+	if (!InEnum)
+	{
+		return FString();
+	}
+
+	FString EnumName = InEnum->GetName();
+	FString EnumBody = FString::Printf(TEXT("enum %s {\n"), *EnumName);
+
+	// Check for duplicate values
+	TSet<int64> SeenValues;
+	bool bHasDuplicates = false;
+	for (int32 i = 0; i < InEnum->NumEnums(); ++i)
+	{
+		FString EnumValueName = InEnum->GetNameStringByIndex(i);
+		if (!EnumValueName.EndsWith(TEXT("_MAX")))
+		{
+			int64 EnumValue = InEnum->GetValueByIndex(i);
+			if (SeenValues.Contains(EnumValue))
+			{
+				bHasDuplicates = true;
+				break;
+			}
+			SeenValues.Add(EnumValue);
+		}
+	}
+
+	if (bHasDuplicates)
+	{
+		EnumBody.Append(TEXT("  option allow_alias = true;\n"));
+	}
+
+	for (int32 i = 0; i < InEnum->NumEnums(); ++i)
+	{
+		FString EnumValueName = InEnum->GetNameStringByIndex(i);
+		if (!EnumValueName.EndsWith(TEXT("_MAX")))
+		{
+			int64 EnumValue = InEnum->GetValueByIndex(i);
+			EnumBody.Append(FString::Printf(TEXT("  %s_%s = %lld;\n"), *EnumName, *EnumValueName, EnumValue));
+		}
+	}
+
+	EnumBody.Append(TEXT("}\n\n"));
+	return EnumBody;
 }
 
 

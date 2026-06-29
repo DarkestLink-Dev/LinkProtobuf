@@ -82,6 +82,8 @@ public:
 	static bool RebuildThisPlugin();
 
 	static bool AppendExtensionForFile(const FString& FilePath, const FString& Extension);
+
+	static FString GenerateProtoEnumBody(const UEnum* InEnum);
 protected:
 	UPROPERTY(BlueprintReadWrite,EditAnywhere, Category = "LinkProtobuf|Editor")
 	TArray<TObjectPtr<UScriptStruct>> ProtoBoundStructs;

@@ -9,10 +9,11 @@
 #include "Widgets/Input/SButton.h"
 #include "LinkProtobufEditorSettings.h"
 #include "LinkProtobufEditorFunctionLibrary.h"
-#include "Engine/UserDefinedStruct.h"
 #include "Misc/MessageDialog.h"
-#if ENGINE_MAJOR_VERSION >= 5&& ENGINE_MINOR_VERSION >= 5
+#if ENGINE_MAJOR_VERSION >= 5 && ENGINE_MINOR_VERSION >= 5
 #include "StructUtils/UserDefinedStruct.h"
+#else
+#include "Engine/UserDefinedStruct.h"
 #endif
 
 #define LOCTEXT_NAMESPACE "LinkProtobufEditorSettings"
